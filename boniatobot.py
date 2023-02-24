@@ -5,10 +5,24 @@ from datetime import datetime
 import aiohttp
 from aiopvpc import PVPCData
 import asyncio
-# from IPython import embed
-
+from IPython import embed
+def get_methods(object, spacing=20):
+  methodList = []
+  for method_name in dir(object):
+    try:
+        if callable(getattr(object, method_name)):
+            methodList.append(str(method_name))
+    except Exception:
+        methodList.append(str(method_name))
+  processFunc = (lambda s: ' '.join(s.split())) or (lambda s: s)
+  for method in methodList:
+    try:
+        print(str(method.ljust(spacing)) + ' ' +
+              processFunc(str(getattr(object, method).__doc__)[0:90]))
+    except Exception:
+        print(method.ljust(spacing) + ' ' + ' getattr() failed')
+        
 async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # embed()  
     await update.message.reply_text(f'Que passsa {update.effective_user.first_name}')
 
 async def proyector_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -20,8 +34,8 @@ async def get_price():
     async with aiohttp.ClientSession() as session:
         print('hasta aqui bien')
         pvpc_handler = PVPCData(session=session, tariff="2.0TD")
-        print([method_name for method_name in dir(object)
-                  if callable(getattr(object, method_name))])
+        get_methods(PVPCData)
+        embed()  
         prices: dict = await pvpc_handler.async_update_prices(datetime.now())
         print('Precios calculados')
         print(prices)
@@ -31,7 +45,6 @@ async def get_price():
     return price_now
 
 async def get_price_now(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    print('Se inicia?')
     await update.message.reply_text(f'Calculando precio...')
     task = asyncio.create_task(get_price())
     price_now = await task
