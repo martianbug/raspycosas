@@ -5,10 +5,10 @@ import aiohttp
 from datetime import datetime
 from aiopvpc import PVPCData
 import asyncio
-from IPython import embed
+# from IPython import embed
 
 async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    embed()  
+    # embed()  
     await update.message.reply_text(f'Que passsa {update.effective_user.first_name}')
 
 async def proyector_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -16,7 +16,7 @@ async def proyector_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     os.system("irsend SEND_ONCE BENQ_W1070 KEY_POWER")
     
 async def get_price():  
-    embed()  
+    # embed()  
     async with aiohttp.ClientSession() as session:
         print('hasta aqui bien')
         pvpc_handler = PVPCData(session=session, tariff="2.0TD")
