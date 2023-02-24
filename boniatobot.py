@@ -1,12 +1,31 @@
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+import telegram
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Updater
 import os
 from datetime import datetime
 import aiohttp
 from aiopvpc import PVPCData
 import asyncio
-# from splitwise import Splitwise
-     
+from splitwise import Splitwise
+group_id = '-1001763995292'
+
+async def splitwise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    sObj = Splitwise("mXTafLpKtojlBiTab15mfAsHyipNMfQVdTKm8B2X","y2wdKYyD7KsU5wlQcarVYrg0K9tvbeEnorFqVQzO")
+    session ={}
+    session['access_token'] = 'mXTafLpKtojlBiTab15mfAsHyipNMfQVdTKm8B2X'
+    sObj.setAccessToken(session['access_token'])
+    
+    sObj.getFriends()
+    url, secret = sObj.getAuthorizeURL()
+    oauth_token    = request.args.get('oauth_token')
+    oauth_verifier = request.args.get('oauth_verifier')
+    # await update.message.reply_text(f'Que passsa {update.effective_user.first_name}')
+
+
+def callback_minute(context: telegram.ext.CallbackContext):
+    context.bot.send_message(chat_id=group_id, 
+                             text='One message every day')
+
 async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Que passsa {update.effective_user.first_name}')
 
@@ -14,7 +33,7 @@ async def chill(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Andreeeea cchiiill reláaajate 😇😚')
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text(f'Bienvenido al Boniato Bot')
+    await update.message.reply_text(f'Bienvenido al Boniato Bot.\n  \nLos comandos los puedes encontrar abajo ;)')
 
 async def proyector_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Encendiendo proyector!')
@@ -35,11 +54,16 @@ async def get_price_now(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     task = asyncio.create_task(get_price())
     price_now = await task
     if price_now > 0.22:
-        await update.message.reply_text(f'Precio de la electricité ahora es {price_now} €/kWh . Esto es algo caro!')
+        await update.message.reply_text(f'Precio de la electricité ahora es {price_now} €/kWh . Esto es algo caro! 💸💴')
     else:
-        await update.message.reply_text(f'Precio de la electricité ahora es {price_now} €/kWh. Ta bien pa una lavadora')
+        await update.message.reply_text(f'Precio de la electricité ahora es {price_now} €/kWh. Aprovecha ahora para cosas tochas y ahorrar 🤑')
 
 app = ApplicationBuilder().token("6055412517:AAFpxYgauYw1df_Ak3dcKf86DVs4zsMDTf8").build()
+
+# updater = Updater('1605329753:AAGy9Hukl7Nc8CzUJ0tcfndxR_tctvKDCRI', use_context=True)
+# dispatcher = updater.dispatcher
+# j = updater.job_queue
+# job_minute = j.run_repeating(callback_minute, interval=86400, first=10)
 
 app.add_handler(CommandHandler("saludame", hola))
 app.add_handler(CommandHandler("chill_andrea", chill))
