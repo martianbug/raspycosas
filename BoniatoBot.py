@@ -15,9 +15,13 @@ async def proyector_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     
 async def get_price():    
     async with aiohttp.ClientSession() as session:
+        print('hasta aqui bien')
         pvpc_handler = PVPCData(session=session, tariff="2.0TD")
         prices: dict = await pvpc_handler.async_update_prices(datetime.now())
+        print('Precios calculados')
+        print(prices)
         prices = {k.replace(minute=0,second=0, microsecond=0, tzinfo=None).isoformat(): v for k, v in prices.items()}
+        print(prices)
         price_now = prices[datetime.now().replace(minute=0,second=0, microsecond=0).isoformat()]
     return price_now
 
@@ -25,7 +29,6 @@ async def get_price_now(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await update.message.reply_text(f'Calculando precio...')
     task = asyncio.create_task(get_price())
     price_now = await task
-    # loop.close()
     if price_now > 0.22:
         await update.message.reply_text(f'Precio ahora es {price_now} €/kWh . Esto es algo caro!')
     else:
