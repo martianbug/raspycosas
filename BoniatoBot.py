@@ -15,8 +15,10 @@ app = ApplicationBuilder().token("6055412517:AAFpxYgauYw1df_Ak3dcKf86DVs4zsMDTf8
 app.add_handler(CommandHandler("saludame", hello))
 app.add_handler(CommandHandler("proyector_on", proyector_on))
 
-
+print('Bontiato Bot running...')
 app.run_polling()
+print('Bontiato Bot ended!')
+
 
 pass
 # 
