@@ -1,8 +1,8 @@
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import os
-import aiohttp
 from datetime import datetime
+import aiohttp
 from aiopvpc import PVPCData
 import asyncio
 # from IPython import embed
@@ -20,6 +20,8 @@ async def get_price():
     async with aiohttp.ClientSession() as session:
         print('hasta aqui bien')
         pvpc_handler = PVPCData(session=session, tariff="2.0TD")
+        print([method_name for method_name in dir(object)
+                  if callable(getattr(object, method_name))])
         prices: dict = await pvpc_handler.async_update_prices(datetime.now())
         print('Precios calculados')
         print(prices)
