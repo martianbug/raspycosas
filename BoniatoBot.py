@@ -7,8 +7,8 @@ from aiopvpc import PVPCData
 import asyncio
 from IPython import embed
 
-
 async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    embed()  
     await update.message.reply_text(f'Que passsa {update.effective_user.first_name}')
 
 async def proyector_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -30,7 +30,6 @@ async def get_price():
 
 async def get_price_now(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     print('Se inicia?')
-    
     await update.message.reply_text(f'Calculando precio...')
     task = asyncio.create_task(get_price())
     price_now = await task
@@ -44,8 +43,6 @@ app = ApplicationBuilder().token("6055412517:AAFpxYgauYw1df_Ak3dcKf86DVs4zsMDTf8
 app.add_handler(CommandHandler("saludame", hola))
 app.add_handler(CommandHandler("proyector_on", proyector_on))
 app.add_handler(CommandHandler("precio", get_price_now))
-
-
 
 print('Bontiato Bot running...')
 app.run_polling()
