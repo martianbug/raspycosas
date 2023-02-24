@@ -10,6 +10,10 @@ import asyncio
 async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Que passsa {update.effective_user.first_name}')
 
+async def chill(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(f'Andreeeea cchiiill reláaajate :innocent::kissing_smiling_eyes:')
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Bienvenido al Boniato Bot')
 
@@ -21,7 +25,6 @@ async def get_price():
     async with aiohttp.ClientSession() as session:
         pvpc_handler = PVPCData(session=session, tariff="2.0TD")
         prices: dict = await pvpc_handler.async_update_all(current_data=None, now=datetime.now())
-        print('Precios calculados')
         print(prices)
         prices=prices.sensors['PVPC']
         prices = {k.replace(minute=0,second=0, microsecond=0, tzinfo=None).isoformat(): v for k, v in prices.items()}
@@ -30,17 +33,17 @@ async def get_price():
     return price_now
 
 async def get_price_now(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text(f'Calculando precio...')
     task = asyncio.create_task(get_price())
     price_now = await task
     if price_now > 0.22:
-        await update.message.reply_text(f'Precio ahora es {price_now} €/kWh . Esto es algo caro!')
+        await update.message.reply_text(f'Precio de la electricité ahora es {price_now} €/kWh . Esto es algo caro!')
     else:
-        await update.message.reply_text(f'Precio ahora es {price_now} €/kWh. Ta bien pa una lavadora')
+        await update.message.reply_text(f'Precio de la electricité ahora es {price_now} €/kWh. Ta bien pa una lavadora')
 
 app = ApplicationBuilder().token("6055412517:AAFpxYgauYw1df_Ak3dcKf86DVs4zsMDTf8").build()
 
 app.add_handler(CommandHandler("saludame", hola))
+app.add_handler(CommandHandler("chill_andrea", chill))
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("proyector_on", proyector_on))
 app.add_handler(CommandHandler("precio", get_price_now))
