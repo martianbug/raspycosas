@@ -11,8 +11,7 @@ async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Que passsa {update.effective_user.first_name}')
 
 async def chill(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text(f'Andreeeea cchiiill reláaajate :innocent::kissing_smiling_eyes:')
-
+    await update.message.reply_text(f'Andreeeea cchiiill reláaajate 😇😚')
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Bienvenido al Boniato Bot')
