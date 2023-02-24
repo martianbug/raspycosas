@@ -22,6 +22,7 @@ async def get_price():
     return price_now
 
 async def get_price_now(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(f'Calculando precio...')
     task = asyncio.create_task(get_price())
     price_now = await task
     # loop.close()
