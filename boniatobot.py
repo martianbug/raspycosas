@@ -1,31 +1,35 @@
 from telegram import Update
-import telegram
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Updater
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, Updater, filters
 import os
 from datetime import datetime
 import aiohttp
 from aiopvpc import PVPCData
 import asyncio
 from splitwise import Splitwise
-group_id = '-1001763995292'
+import bot_constants as C
+import time
+from bot_utils import unknown, error_handler
+import shutil
+
+async def callback_day(context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(chat_id=C.group_id, text='Boas noites')
+def get_debts(grupo):
+    mensajes=[]
+    for debt in grupo.simplified_debts:
+        deudor_name=[i.first_name for i in grupo.members if i.id==debt.fromUser][0]
+        deudado_name=[i.first_name for i in grupo.members if i.id==debt.toUser][0]
+        mensaje=f"{deudor_name} debe {debt.getAmount()} {debt.currency_code} a {deudado_name}"
+        mensajes.append(mensaje)
+    return mensajes
 
 async def splitwise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    sObj = Splitwise("mXTafLpKtojlBiTab15mfAsHyipNMfQVdTKm8B2X","y2wdKYyD7KsU5wlQcarVYrg0K9tvbeEnorFqVQzO")
-    session ={}
-    session['access_token'] = 'mXTafLpKtojlBiTab15mfAsHyipNMfQVdTKm8B2X'
-    sObj.setAccessToken(session['access_token'])
+    group_casa_id = 43735949
+    sObj = Splitwise(C.key, C.consumer_secret, api_key=C.api_key)
+    grupo = [i for i in sObj.getGroups() if i.id==group_casa_id][0]
+    msjs= get_debts(grupo)
+    for msj in msjs:
+        await update.message.reply_text(f'{msj}')
     
-    sObj.getFriends()
-    url, secret = sObj.getAuthorizeURL()
-    oauth_token    = request.args.get('oauth_token')
-    oauth_verifier = request.args.get('oauth_verifier')
-    # await update.message.reply_text(f'Que passsa {update.effective_user.first_name}')
-
-
-def callback_minute(context: telegram.ext.CallbackContext):
-    context.bot.send_message(chat_id=group_id, 
-                             text='One message every day')
-
 async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Que passsa {update.effective_user.first_name}')
 
@@ -36,17 +40,30 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Bienvenido al Boniato Bot.\n  \nLos comandos los puedes encontrar abajo ;)')
 
 async def proyector_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if shutil.which('irsend') is None:
+        await update.message.reply_text(f'No se puede encender proyector ahora.')
+        # loop = asyncio.get_event_loop()
+        context.error='Not running in Linux'
+        task = asyncio.create_task(error_handler(update, context))
+        await task
+        pass
+    else:
+        await update.message.reply_text(f'Encendiendo proyector!')
+        os.system("irsend SEND_ONCE BENQ_W1070 KEY_POWER")
+    
+async def proyector_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Encendiendo proyector!')
+    os.system("irsend SEND_START BENQ_W1070 KEY_POWER")
+    time.sleep(0.5) 
+    os.system("irsend SEND_STOP BENQ_W1070 KEY_POWER")
     os.system("irsend SEND_ONCE BENQ_W1070 KEY_POWER")
     
 async def get_price():  
     async with aiohttp.ClientSession() as session:
         pvpc_handler = PVPCData(session=session, tariff="2.0TD")
         prices: dict = await pvpc_handler.async_update_all(current_data=None, now=datetime.now())
-        print(prices)
         prices=prices.sensors['PVPC']
         prices = {k.replace(minute=0,second=0, microsecond=0, tzinfo=None).isoformat(): v for k, v in prices.items()}
-        print(prices)
         price_now = prices[datetime.now().replace(minute=0,second=0, microsecond=0).isoformat()]
     return price_now
 
@@ -58,26 +75,29 @@ async def get_price_now(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     else:
         await update.message.reply_text(f'Precio de la electricité ahora es {price_now} €/kWh. Aprovecha ahora para cosas tochas y ahorrar 🤑')
 
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Displays info on how to trigger an error."""
+    await update.effective_message.reply_html(
+        "Use /bad_command to cause an error.\n"
+        f"Your chat id is <code>{update.effective_chat.id}</code>."
+    )
 app = ApplicationBuilder().token("6055412517:AAFpxYgauYw1df_Ak3dcKf86DVs4zsMDTf8").build()
+# job_queue = app.job_queue
+# job_queue.run_daily(callback_day, 30)
 
-# updater = Updater('1605329753:AAGy9Hukl7Nc8CzUJ0tcfndxR_tctvKDCRI', use_context=True)
-# dispatcher = updater.dispatcher
-# j = updater.job_queue
-# job_minute = j.run_repeating(callback_minute, interval=86400, first=10)
 
-app.add_handler(CommandHandler("saludame", hola))
+app.add_handler(CommandHandler("holita", hola))
 app.add_handler(CommandHandler("chill_andrea", chill))
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("proyector_on", proyector_on))
 app.add_handler(CommandHandler("precio", get_price_now))
+app.add_handler(CommandHandler("splitwise", splitwise))
+#Error handling
+app.add_error_handler(error_handler)
 
-
+unknown_handler = MessageHandler(filters.COMMAND, unknown)
+app.add_handler(unknown_handler)
 print('Bontiato Bot running...')
 app.run_polling()
 print('Bontiato Bot ended!')
-
-
-pass
-# get current date
-# current_date = datetime.date.today()
-# print(current_date)
