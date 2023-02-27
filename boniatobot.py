@@ -75,13 +75,6 @@ async def get_price_now(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     else:
         await update.message.reply_text(f'Precio de la electricité ahora es {price_now} €/kWh. Aprovecha ahora para cosas tochas y ahorrar 🤑')
 
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Displays info on how to trigger an error."""
-    await update.effective_message.reply_html(
-        "Use /bad_command to cause an error.\n"
-        f"Your chat id is <code>{update.effective_chat.id}</code>."
-    )
 app = ApplicationBuilder().token("6055412517:AAFpxYgauYw1df_Ak3dcKf86DVs4zsMDTf8").build()
 # job_queue = app.job_queue
 # job_queue.run_daily(callback_day, 30)

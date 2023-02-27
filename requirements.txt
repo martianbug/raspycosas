@@ -1,4 +1,5 @@
  python-telegram-bot
- aiohttp`
+ aiohttp
  tzdata
  splitwise
+ aiopvpc
