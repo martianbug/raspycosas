@@ -15,10 +15,10 @@ async def callback_day(context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=C.group_id, text='Boas noites')
 def get_debts(grupo):
     mensajes=[]
-    for debt in grupo.simplified_debts:
+    for debt in grupo.original_debts:
         deudor_name=[i.first_name for i in grupo.members if i.id==debt.fromUser][0]
         deudado_name=[i.first_name for i in grupo.members if i.id==debt.toUser][0]
-        mensaje=f"{deudor_name} debe *{debt.getAmount()}* {debt.currency_code} a {deudado_name}"
+        mensaje=f"{deudor_name} debe {debt.getAmount()} {debt.currency_code} a {deudado_name}"
         mensajes.append(mensaje)
     return mensajes
 
@@ -26,20 +26,25 @@ async def splitwise_debts(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     sObj = Splitwise(C.key, C.consumer_secret, api_key=C.api_key)
     grupo = [i for i in sObj.getGroups() if i.id==C.SPLITWISE_GROUP_CASA][0]
     msjs= get_debts(grupo)
-    for msj in msjs:
-        await update.message.reply_text(f'{msj}')
+    await update.message.reply_text('\n'.join(msjs))
    
-async def add_splitwise_expense(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    sObj = Splitwise(C.key, C.consumer_secret, api_key=C.api_key)
-    description = context.args[0]
-    cost = float(context.args[1])
-    expense=Expense()
-    expense.group_id = C.SPLITWISE_GROUP_CASA
-    expense.description =description
-    expense.cost = cost
-    # await update.message.reply_text(f'{msj}')
+# async def add_splitwise_expense(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+#     sObj = Splitwise(C.key, C.consumer_secret, api_key=C.api_key)
+#     if len(context.args)<2:
+#         await update.message.reply_text(f'Debes decirme primero la descripcion y luego el precio!')
+#         return
+#     grupo = [i for i in sObj.getGroups() if i.id==C.SPLITWISE_GROUP_CASA][0]
+#     description = context.args[0]
+#     cost = float(context.args[1])
+#     expense=Expense()
+#     expense.group_id = C.SPLITWISE_GROUP_CASA
+#     expense.description =description
+#     expense.cost = cost
+#     expense.setUsers = grupo.getMembers()
+#     # expense.created_by
+#     expens=sObj.createExpense(expense)
+#     await update.message.reply_text(f'Gasto añadido {expens}')
     
-    sObj.createExpense(expense)
     
 async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Que passsa {update.effective_user.first_name}')
@@ -78,13 +83,13 @@ async def get_price_now(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     from heapq import nsmallest, nlargest
     prices = await asyncio.create_task(get_price())
     price_now = prices[datetime.now().hour]
-    text=f'Precio de la electricité ahora es {price_now} €/kWh'
-    if price_now > min(nlargest(6, prices.values())):
-        text+='Esto es algo caro! 💸💴'
-    elif price_now < max(nsmallest(6, prices.values())):
-        text+='Aprovecha ahora para cosas tochas y ahorrar 🤑'
+    text=f'Precio de la electricité ahora es {price_now} €/kWh.'
+    if price_now > min(nlargest(8, prices.values())):
+        text+=' Esto es algo caro! 💸💴'
+    elif price_now < max(nsmallest(8, prices.values())):
+        text+=' Aprovecha ahora para cosas tochas y ahorrar 🤑'
     else:
-         text+='Esto es normalito 🥹'
+         text+=' Esto es normalito 🥹'
     await update.message.reply_text(text, reply_markup=ReplyKeyboardRemove()) 
     
 async def get_price_graph(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -114,36 +119,28 @@ async def get_price_graph(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     os.remove(dest_path)
     
 async def price(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    buttons= [[KeyboardButton('Precio ahora')], [KeyboardButton('Gráfica')]]
-    await context.bot.send_message(chat_id=update.effective_chat.id, text='Elije una opción:', reply_markup=ReplyKeyboardMarkup(buttons))
+    markup = [[KeyboardButton(i)] for i in C.buttons_price]
+    await context.bot.send_message(chat_id=update.effective_chat.id, text='Elije una opción:', reply_markup=ReplyKeyboardMarkup(markup))
 
 async def messageHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if 'Precio ahora' in update.message.text:
+    if C.buttons_price[0] == update.message.text:
         await get_price_now(update, context)
-    if 'Gráfica' in update.message.text:
+    if C.buttons_price[1] == update.message.text:
         await get_price_graph(update, context)
-    msg = await context.bot.send_message(update.effective_chat.id,
-                                 "\.",
-                                #  reply_markup=ReplyKeyboardRemove(),
-                                 parse_mode="MarkdownV2")
-    await msg.delete()
-    
 
 app = ApplicationBuilder().token("6055412517:AAFpxYgauYw1df_Ak3dcKf86DVs4zsMDTf8").build()
 # job_queue = app.job_queue
 # job_queue.run_daily(callback_day, 30)
-
 
 app.add_handler(CommandHandler("holita", hola))
 app.add_handler(CommandHandler("chill_andrea", chill))
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("proyector_on", proyector_on))
 app.add_handler(CommandHandler("precio", price))
-app.add_handler(MessageHandler(filters.TEXT, messageHandler))
+app.add_handler(MessageHandler(filters.Text(C.buttons_price), messageHandler))
 
-# app.add_handler(CommandHandler("precio_grafica", get_price_graph))
-app.add_handler(CommandHandler("splitwise", splitwise_debts))
-app.add_handler(CommandHandler("add_splitwise", add_splitwise_expense))
+app.add_handler(CommandHandler("deudas", splitwise_debts))
+# app.add_handler(CommandHandler("add_splitwise", add_splitwise_expense))
 
 #Error handling
 app.add_error_handler(error_handler)

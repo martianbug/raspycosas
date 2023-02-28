@@ -12,5 +12,7 @@ SPLITWISE_GROUP_CASA = 43735949
 group_id = '-1001763995292'
 DEVELOPER_CHAT_ID = '63210791'
 
+buttons_price = ['Precio ahora', 'Gráfica del día']
+
 
 IMAGE_FOLDER='bot_images/'
