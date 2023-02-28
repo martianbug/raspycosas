@@ -3,3 +3,4 @@
  tzdata
  splitwise
  aiopvpc
+ seaborn
