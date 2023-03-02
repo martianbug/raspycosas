@@ -38,3 +38,28 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Lo siento, ese comando no lo conozco")
+# async def add_splitwise_expense(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+#     sObj = Splitwise(C.key, C.consumer_secret, api_key=C.api_key)
+#     if len(context.args)<2:
+#         await update.message.reply_text(f'Debes decirme primero la descripcion y luego el precio!')
+#         return
+#     grupo = [i for i in sObj.getGroups() if i.id==C.SPLITWISE_GROUP_CASA][0]
+#     description = context.args[0]
+#     cost = float(context.args[1])
+#     expense=Expense()
+#     expense.group_id = C.SPLITWISE_GROUP_CASA
+#     expense.description =description
+#     expense.cost = cost
+#     expense.setUsers = grupo.getMembers()
+#     # expense.created_by
+#     expens=sObj.createExpense(expense)
+#     await update.message.reply_text(f'Gasto añadido {expens}')
+
+def get_debts(grupo):
+    mensajes=[]
+    for debt in grupo.original_debts:
+        deudor_name=[i.first_name for i in grupo.members if i.id==debt.fromUser][0]
+        deudado_name=[i.first_name for i in grupo.members if i.id==debt.toUser][0]
+        mensaje=f"{deudor_name} debe {debt.getAmount()} {debt.currency_code} a {deudado_name}"
+        mensajes.append(mensaje)
+    return mensajes
