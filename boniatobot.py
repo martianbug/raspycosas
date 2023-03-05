@@ -1,17 +1,22 @@
+import asyncio
+import os
+import shutil
+from datetime import datetime
+from heapq import nlargest, nsmallest
+
+import aiohttp
+import bot_constants as C
+import matplotlib.pyplot as plt
+import numpy as np
+from aiopvpc import PVPCData
+# import time
+from bot_utils import error_handler, get_debts, unknown
+from pythonosc import osc_server
+from scipy.interpolate import interp1d
+from splitwise import Splitwise
 from telegram import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
-import os
-from datetime import datetime
-import aiohttp
-from aiopvpc import PVPCData
-import asyncio
-from splitwise import Splitwise
-import bot_constants as C
-# import time
-from bot_utils import get_debts, unknown, error_handler
-# import shutil
-from pythonosc import osc_server
-from heapq import nsmallest, nlargest
+
 
 async def callback_day(context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=C.group_id, text='Boas noites')
@@ -80,9 +85,7 @@ async def get_price_now(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await update.message.reply_text(text, reply_markup=ReplyKeyboardRemove()) 
     
 async def get_price_graph(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    import matplotlib.pyplot as plt
-    import numpy as np
-    from scipy.interpolate import interp1d
+
     prices = await asyncio.create_task(get_price())
     dest_path = os.path.join(C.IMAGE_FOLDER ,f'prices_{datetime.now().strftime("%d-%m-%Y %H_%M_%S")}.png')
  
