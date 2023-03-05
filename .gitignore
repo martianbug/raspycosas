@@ -1,0 +1,14 @@
+*~
+test/*
+dustenv/pyenv/*
+dustenv/pyenv
+.pdm.toml
+__pypackages__/3.8/lib
+__pypackages__/3.8/bin
+__pypackages__/3.8/share/man/man1
+.lsyncd.lua
+didonebert/__pycache__
+data/dataframe.csv
+ltex.dictionary.en-US.txt
+
+data/didone_corpus_bin
