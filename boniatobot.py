@@ -16,9 +16,6 @@ from heapq import nsmallest, nlargest
 async def callback_day(context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=C.group_id, text='Boas noites')
 
-
-
-
 async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Que passsa {update.effective_user.first_name}')
 
@@ -46,21 +43,21 @@ async def splitwise_debts(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     msjs= get_debts(grupo)
     await update.message.reply_text('\n'.join(msjs))
    
-# async def proyector_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-#     if shutil.which('irsend') is None:
-#         await update.message.reply_text(f'No se puede encender proyector ahora.')
-#         # context.error = ContextTypes.DEFAULT_TYPE
-#         await asyncio.create_task(error_handler(update, context))
-#     else:
-#         await update.message.reply_text(f'Encendiendo proyector!')
-#         os.system("irsend SEND_ONCE BENQ_W1070 KEY_POWER")
+async def proyector_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if shutil.which('irsend') is None:
+        await update.message.reply_text(f'No se puede encender proyector ahora.')
+        # context.error = ContextTypes.DEFAULT_TYPE
+        await asyncio.create_task(error_handler(update, context))
+    else:
+        await update.message.reply_text(f'Encendiendo proyector!')
+        os.system("irsend SEND_ONCE BENQ_W1070 KEY_POWER")
     
-# async def proyector_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-#     await update.message.reply_text(f'Encendiendo proyector!')
-#     os.system("irsend SEND_START BENQ_W1070 KEY_POWER")
-#     time.sleep(0.5) 
-#     os.system("irsend SEND_STOP BENQ_W1070 KEY_POWER")
-#     os.system("irsend SEND_ONCE BENQ_W1070 KEY_POWER")
+async def proyector_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(f'Encendiendo proyector!')
+    os.system("irsend SEND_START BENQ_W1070 KEY_POWER")
+    time.sleep(0.5) 
+    os.system("irsend SEND_STOP BENQ_W1070 KEY_POWER")
+    os.system("irsend SEND_ONCE BENQ_W1070 KEY_POWER")
     
 async def get_price():  
     async with aiohttp.ClientSession() as session:
@@ -125,7 +122,8 @@ app = ApplicationBuilder().token("6055412517:AAFpxYgauYw1df_Ak3dcKf86DVs4zsMDTf8
 app.add_handler(CommandHandler("holita", hola))
 app.add_handler(CommandHandler("chill_andrea", chill))
 app.add_handler(CommandHandler("start", start))
-# app.add_handler(CommandHandler("proyector_on", proyector_on))
+app.add_handler(CommandHandler("proyector_on", proyector_on))
+app.add_handler(CommandHandler("proyector_off", proyector_off))
 app.add_handler(CommandHandler("precio", price))
 app.add_handler(CommandHandler("status_setas", temp_and_humidity))
 
