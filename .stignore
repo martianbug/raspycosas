@@ -1,0 +1,11 @@
+checkpoints
+.git
+__pypackages__
+__pycache__
+**/__pycache__
+dustenv/pyenv
+.rope*
+*~
+**/~
+data/Corpus
+.pdm.toml
