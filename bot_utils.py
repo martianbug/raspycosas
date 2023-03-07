@@ -22,9 +22,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def check_permission(update: object):
-    # if update.effective_user.id not in C.ALLOWED_IDS:
-    if update.effective_chat.id not in C.ALLOWED_IDS:
-        
+    if str(update.effective_chat.id) not in C.ALLOWED_IDS:
         return False
     return True
 
@@ -80,14 +78,17 @@ async def message_price_handler(update: Update, context: ContextTypes.DEFAULT_TY
         await get_price_graph(update, context)
     
 async def get_price_graph(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    prices = await asyncio.create_task(get_price())
     dest_path = os.path.join(C.IMAGE_FOLDER ,f'prices_{datetime.now().strftime("%d-%m-%Y %H_%M_%S")}.png')
+    if os.path.exists(dest_path):
+        await update.message.reply_photo(dest_path, reply_markup=ReplyKeyboardRemove())
+        return
+    prices = await asyncio.create_task(get_price())
     y=np.array(list(prices.values()))
     x=np.array(list(prices.keys()))
     cubic_interpolation_model = interp1d(x, y, kind = "cubic")
     X_=np.linspace(x.min(), x.max(), 300)
     Y_=cubic_interpolation_model(X_)
-    plt.rcParams.update({'font.size': 22, 'font.family': 'sans-serif', 'font.sans-serif':'Verdana'})
+    plt.rcParams.update({'font.size': 22, 'font.family': 'sans-serif'})
     plt.figure(figsize=(16,10), dpi= 80)
     plt.grid()
     plt.title(f'Precios electricidad para el {datetime.now().strftime("%Y-%m-%d")}', fontsize=22)
@@ -98,7 +99,7 @@ async def get_price_graph(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     plt.plot(X_, Y_, 'g')
     plt.savefig(dest_path)
     await update.message.reply_photo(dest_path, reply_markup=ReplyKeyboardRemove())
-    os.remove(dest_path)
+    # os.remove(dest_path)
 
 # async def add_splitwise_expense(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 #     sObj = Splitwise(C.key, C.consumer_secret, api_key=C.api_key)
@@ -125,3 +126,45 @@ def get_debts(grupo):
         mensaje=f"{deudor_name} debe {debt.getAmount()} {debt.currency_code} a {deudado_name}"
         mensajes.append(mensaje)
     return mensajes
+
+
+async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
+    job = context.job
+    await context.bot.send_message(job.chat_id, text=f"Atención, recordatorio!! Recuerda callarte la puta boca :)")
+
+async def set_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    chat_id = update.effective_message.chat_id
+    try:
+        if len(context.args) < 1:
+            await update.effective_message.reply_text("Dime cuantos minutos quieres de espera.")
+            return
+        due = float(context.args[0]) * 60 * 60 
+        if due < 0:
+            await update.effective_message.reply_text("Primo no se puede viajar al pasado.")
+            return
+
+        job_removed = remove_job_if_exists(str(chat_id), context)
+        context.job_queue.run_once(alarm, due, chat_id=chat_id, name=str(chat_id), data=due)
+
+        text = "Recordatorio añadido!"
+        if job_removed:
+            text += " Anterior recordatorio eliminado."
+        await update.effective_message.reply_text(text)
+
+    except (IndexError, ValueError):
+        await update.effective_message.reply_text("Uso: /set <horas>")
+        
+async def unset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Remove the job if the user changed their mind."""
+    chat_id = update.message.chat_id
+    job_removed = remove_job_if_exists(str(chat_id), context)
+    text = "Recordatorio cancelado!" if job_removed else "No tienes recordatorios activos primo"
+    await update.message.reply_text(text)
+
+def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    current_jobs = context.job_queue.get_jobs_by_name(name)
+    if not current_jobs:
+        return False
+    for job in current_jobs:
+        job.schedule_removal()
+    return True

@@ -4,17 +4,12 @@ import shutil
 import random
 import bot_constants as C
 import json
+from urllib.request import urlopen
 import time
-from bot_utils import check_permission, error_handler, get_debts, message_price_handler, unknown
-from pythonosc import osc_server
+from bot_utils import check_permission, error_handler, get_debts, message_price_handler, set_timer, unknown, unset
 from splitwise import Splitwise
 from telegram import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters, CallbackContext
-
-hum = 0
-
-async def callback_day(context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=C.GROUP_CHAT_ID, text='Boas noites')
 
 async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Que passsa {update.effective_user.first_name}')
@@ -32,13 +27,15 @@ def get_data(address, *args):
     hum = args[1]
 
 async def temp_and_humidity(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    dispatcher = osc_server.Dispatcher()
-    server = osc_server.ThreadingOSCUDPServer((C.ip, C.port),dispatcher)
-    dispatcher.map("/data", get_data, server)
-    server.server_activate()
-    # server.serve_forever()
-    # await update.message.reply_text(f'{hum}')
-   
+    page = urlopen(C.SERVER_URL)
+    html_bytes = page.read()
+    html = html_bytes.decode("utf-8")
+    temp_index = html.find("ura:")
+    temp = html[temp_index+5:temp_index+12]
+    hum_index = html.find("iva:")
+    hum = html[hum_index+5:hum_index+9]
+    await update.message.reply_text(f'La temperatura es {temp}\nLa humedad relativa es del {hum}\n🍄🍄')
+    
 async def splitwise_debts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     sObj = Splitwise(C.key, C.consumer_secret, api_key=C.api_key)
     grupo = [i for i in sObj.getGroups() if i.id==C.SPLITWISE_GROUP_CASA][0]
@@ -84,6 +81,8 @@ async def add_subtract(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     with open(C.SUBTRACTS_FILE, "w") as f:
         data[id] = data[id] + '\n' + mangue if id in data else mangue
         json.dump(data, f, indent=4)
+    await update.message.reply_text(f'{mangue} Añadido ;)')
+    
         
 async def reset_subtracts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     data = {}
@@ -109,18 +108,17 @@ app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("proyector_on", proyector_on))
 app.add_handler(CommandHandler("proyector_off", proyector_off))
 app.add_handler(CommandHandler("precio", price))
-# app.add_handler(CommandHandler("status_setas", temp_and_humidity))
+app.add_handler(CommandHandler("status_setas", temp_and_humidity))
 app.add_handler(CommandHandler("mangue", add_subtract))
 app.add_handler(CommandHandler("mangue_lista", consult_subtracts))
 app.add_handler(CommandHandler("mangue_reset", reset_subtracts))
 app.add_handler(CommandHandler("deudas", splitwise_debts))
-
-
 app.add_handler(MessageHandler(filters.Text(C.BUTTONS_PRICE), message_price_handler))
+app.add_handler(CommandHandler("antiruido", set_timer))
+app.add_handler(CommandHandler("borrar_antiruido", unset))
 
 #Error handling
 app.add_error_handler(error_handler)
-
 #unknown_handler = MessageHandler(filters.COMMAND, unknown)
 print('Bontiato Bot running...'.center(70))
 app.run_polling()

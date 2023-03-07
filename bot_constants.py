@@ -20,6 +20,7 @@ BUTTONS_PRICE = ['Precio ahora', 'Gráfica del día']
 IMAGE_FOLDER = 'bot_images/'
 
 SUBTRACTS_FILE = 'subtracts.json'
+SERVER_URL = "http://192.168.1.123"
 
 ANDREA_PHRASES = [
     "Andrea trancuila respira",
