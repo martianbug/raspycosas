@@ -22,7 +22,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def check_permission(update: object):
-    if update.effective_user.id not in C.ALLOWED_IDS:
+    # if update.effective_user.id not in C.ALLOWED_IDS:
+    if update.effective_chat.id not in C.ALLOWED_IDS:
+        
         return False
     return True
 

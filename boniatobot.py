@@ -11,6 +11,8 @@ from splitwise import Splitwise
 from telegram import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters, CallbackContext
 
+hum = 0
+
 async def callback_day(context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=C.GROUP_CHAT_ID, text='Boas noites')
 
@@ -26,15 +28,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 def get_data(address, *args):    
     print(f"{address}: {args}")
-    temp, _ ,hum = args
-    # return args.split(";")
-    # return args
+    global hum
+    hum = args[1]
 
 async def temp_and_humidity(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    server = osc_server.ThreadingOSCUDPServer((C.ip, C.port), osc_server.Dispatcher())
-    server.dispatcher.map("/data", get_data)
-    # await update.message.reply_text(f'{temp} and {hum}')
-    server.server_close()
+    dispatcher = osc_server.Dispatcher()
+    server = osc_server.ThreadingOSCUDPServer((C.ip, C.port),dispatcher)
+    dispatcher.map("/data", get_data, server)
+    server.server_activate()
+    # server.serve_forever()
+    # await update.message.reply_text(f'{hum}')
    
 async def splitwise_debts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     sObj = Splitwise(C.key, C.consumer_secret, api_key=C.api_key)
@@ -98,8 +101,7 @@ async def consult_subtracts(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                 text += f'{key} ha acumulado:\n{data[key]}\n'
     await update.message.reply_text(text)
                 
-                
-app = ApplicationBuilder().token("6055412517:AAFpxYgauYw1df_Ak3dcKf86DVs4zsMDTf8").build()
+app = ApplicationBuilder().token(C.TOKEN).build()
 
 app.add_handler(CommandHandler("holita", hola))
 app.add_handler(CommandHandler("chill_andrea", chill))
