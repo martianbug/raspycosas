@@ -30,6 +30,9 @@ async def temp_and_humidity(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     page = urlopen(C.SERVER_URL)
     html_bytes = page.read()
     html = html_bytes.decode("utf-8")
+    if 'error' in html:
+        await update.message.reply_text(f'Parece que hay un error :) Resetear chip\n🍄🍄')
+        return
     temp_index = html.find("ura:")
     temp = html[temp_index+5:temp_index+12]
     hum_index = html.find("iva:")
