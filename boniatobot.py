@@ -9,7 +9,7 @@ import time
 from bot_utils import calentador_off, calentador_on, check_permission, consult_subtracts, error_handler, get_debts, message_price_handler, reset_subtracts, set_timer, unknown, unset
 from splitwise import Splitwise
 from telegram import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters, CallbackContext
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters, CallbackContext
 # ssh martin@192.168.1.20
 
 async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -71,15 +71,23 @@ async def proyector_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         await update.message.reply_text(f'No tienes permiso para emitir esa orden!')
 
 async def price(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    markup = [[KeyboardButton(i)] for i in C.BUTTONS_PRICE]
-    await context.bot.send_message(chat_id=update.effective_chat.id, text='Elije una opción:', reply_markup=ReplyKeyboardMarkup(markup))
+    reply_keyboard = [[C.BUTTONS_PRICE[0], C.BUTTONS_PRICE[1]]]
+    await update.message.reply_text(
+        "Elije una opción:",
+        reply_markup=ReplyKeyboardMarkup(
+                reply_keyboard, one_time_keyboard=True, input_field_placeholder=""
+            ),
+        )
+
+async def get_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:    
+    return update.message.text
 
 async def add_subtract(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if len(context.args) < 1:
         await update.message.reply_text(f'Debes decirme algo que hayas pillau!')
         return
     id = str(update.effective_user.first_name)
-    mangue = context.args[0]
+    mangue = " ".join(context.args)
     with open(C.SUBTRACTS_FILE,'r+') as f:
         if os.path.getsize(C.SUBTRACTS_FILE) == 0:
            data = {}
@@ -88,11 +96,40 @@ async def add_subtract(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     with open(C.SUBTRACTS_FILE, "w") as f:
         data[id] = data[id] + '\n' + mangue if id in data else mangue
         json.dump(data, f, indent=4)
-    await update.message.reply_text(f'{mangue} Añadido ;)')
+    await update.message.reply_text(f'"{mangue}" añadido ;)')
     
 
+async def add_mangue(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await update.message.reply_text(
+        "sabab",
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    return 1
+
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await update.message.reply_text(
+        "Adeu motherfucker", reply_markup=ReplyKeyboardRemove()
+    )
+    return ConversationHandler.END
+
+async def mangue(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await update.message.reply_text(
+        "Dime algo que hayas pillao",
+    )
+    return 1
+mangue_conver = ConversationHandler(
+    entry_points=[CommandHandler("mangue", mangue)],
+    states={
+        1: [MessageHandler(filters.TEXT, add_mangue)],
+    },
+    fallbacks=[CommandHandler("cancel", cancel)],
+)
+ 
 if __name__ == "__main__":     
     app = ApplicationBuilder().token(C.TOKEN).build()
+    app.add_handler(CommandHandler("mangue", add_subtract))
+    # app.add_handler(CommandHandler("mangue", mangue))
+    
     app.add_handler(CommandHandler("holita", hola))
     app.add_handler(CommandHandler("chill_andrea", chill))
     app.add_handler(CommandHandler("start", start))
@@ -102,7 +139,6 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("calentador_off", calentador_off))
     app.add_handler(CommandHandler("precio", price))
     app.add_handler(CommandHandler("status_setas", temp_and_humidity))
-    app.add_handler(CommandHandler("mangue", add_subtract))
     app.add_handler(CommandHandler("mangue_lista", consult_subtracts))
     app.add_handler(CommandHandler("mangue_reset", reset_subtracts))
     app.add_handler(CommandHandler("deudas", splitwise_debts))
