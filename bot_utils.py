@@ -57,8 +57,12 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def calentador_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if check_permission(update):
         heater = load_device('calentador')
-        if heater.status()['dps']['1']:
+        if heater.status().get('Error'):
+            await update.message.reply_text(f'No es posible conectarse :/')
+            return
+        elif heater.status().get('dps'):
             await update.message.reply_text(f'Ya está encendido!')
+            heater.turn_on()
         else:
            heater.turn_on()
            await update.message.reply_text(f'Calentador ON 🔥')

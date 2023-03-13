@@ -15,7 +15,7 @@ calentador_IP = calentador_data['ip']
 calentador_KEY = calentador_data['key']
 calentador = tinytuya.OutletDevice(calentador_ID, calentador_IP, None,
                                    version=3.3, dev_type='default')
-
+# cloud = tinytuya.Cloud(
 data = calentador.status() 
 print('Device status: %r' % data)
 calentador.turn_on()

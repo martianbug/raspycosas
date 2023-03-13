@@ -10,7 +10,6 @@ from bot_utils import calentador_off, calentador_on, check_permission, consult_s
 from splitwise import Splitwise
 from telegram import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters, CallbackContext
-
 # ssh martin@192.168.1.20
 
 async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
