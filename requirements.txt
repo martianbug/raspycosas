@@ -1,6 +1,7 @@
- python-telegram-bot
- aiohttp
- tzdata
- splitwise
- aiopvpc
- seaborn
+python-telegram-bot
+aiohttp
+tzdata
+splitwise
+aiopvpc
+seaborn
+tinytuya

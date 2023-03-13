@@ -1,0 +1,259 @@
+{
+    "result": [
+        {
+            "active_time": 1676373881,
+            "biz_type": 18,
+            "category": "cz",
+            "create_time": 1545728070,
+            "icon": "smart/icon/15324342875tjvmpp9uw8_0.png",
+            "id": "68282475840d8e516505",
+            "ip": "90.163.43.166",
+            "lat": "40.4517",
+            "local_key": "99ac2b5066de06bf",
+            "lon": "-3.7058",
+            "model": "SP22",
+            "name": "Calentador Teckin 1",
+            "online": true,
+            "owner_id": "81610754",
+            "product_id": "0fHWRe8ULjtmnBNd",
+            "product_name": "Smart Socket-10A",
+            "status": [
+                {
+                    "code": "switch_1",
+                    "value": true
+                },
+                {
+                    "code": "countdown_1",
+                    "value": 0
+                },
+                {
+                    "code": "add_ele",
+                    "value": 1
+                },
+                {
+                    "code": "cur_current",
+                    "value": 0
+                },
+                {
+                    "code": "cur_power",
+                    "value": 0
+                },
+                {
+                    "code": "cur_voltage",
+                    "value": 2321
+                }
+            ],
+            "sub": false,
+            "time_zone": "+01:00",
+            "uid": "eu1676373648815AA3lt",
+            "update_time": 1678466457,
+            "uuid": "68282475840d8e516505"
+        },
+        {
+            "active_time": 1676374592,
+            "biz_type": 18,
+            "category": "cz",
+            "create_time": 1625168041,
+            "icon": "smart/icon/ay1514359068372Hd98B/c3a67a5857f715ff87995c5875cce60f.jpg",
+            "id": "bf05320ecd2f1b92aevsfc",
+            "ip": "90.163.43.166",
+            "lat": "40.4500",
+            "local_key": "64c57233e171b7f5",
+            "lon": "-3.7100",
+            "name": "Radiador Cella",
+            "online": false,
+            "owner_id": "81610754",
+            "product_id": "fbvia0apnlnattcy",
+            "product_name": "Smart Socket-16A",
+            "status": [
+                {
+                    "code": "switch_1",
+                    "value": true
+                },
+                {
+                    "code": "countdown_1",
+                    "value": 0
+                },
+                {
+                    "code": "add_ele",
+                    "value": 100
+                },
+                {
+                    "code": "cur_current",
+                    "value": 6185
+                },
+                {
+                    "code": "cur_power",
+                    "value": 13564
+                },
+                {
+                    "code": "cur_voltage",
+                    "value": 2193
+                }
+            ],
+            "sub": false,
+            "time_zone": "+01:00",
+            "uid": "eu1676373648815AA3lt",
+            "update_time": 1678451869,
+            "uuid": "7df29b6adf9e13e4"
+        },
+        {
+            "active_time": 1678451078,
+            "biz_type": 18,
+            "category": "cz",
+            "create_time": 1625302931,
+            "icon": "smart/icon/ay1514359068372Hd98B/c3a67a5857f715ff87995c5875cce60f.jpg",
+            "id": "bf84d2cd783bc2ed48lu45",
+            "ip": "90.163.43.166",
+            "lat": "40.4500",
+            "local_key": "f43a4e9a843576c9",
+            "lon": "-3.7100",
+            "name": "Radiador Aposento",
+            "online": false,
+            "owner_id": "81610754",
+            "product_id": "fbvia0apnlnattcy",
+            "product_name": "Smart Socket-16A",
+            "status": [
+                {
+                    "code": "switch_1",
+                    "value": true
+                },
+                {
+                    "code": "countdown_1",
+                    "value": 0
+                },
+                {
+                    "code": "add_ele",
+                    "value": 100
+                },
+                {
+                    "code": "cur_current",
+                    "value": 6023
+                },
+                {
+                    "code": "cur_power",
+                    "value": 13520
+                },
+                {
+                    "code": "cur_voltage",
+                    "value": 2232
+                }
+            ],
+            "sub": false,
+            "time_zone": "+01:00",
+            "uid": "eu1676373648815AA3lt",
+            "update_time": 1678451825,
+            "uuid": "83dd43cf68e34b6c"
+        },
+        {
+            "active_time": 1676374035,
+            "biz_type": 18,
+            "category": "cz",
+            "create_time": 1630860562,
+            "icon": "smart/device_icon/eu1545668858274Jg9Hk/1630861438.741324.png",
+            "id": "bfe1a2b92b9ed9bca4lrtb",
+            "ip": "90.163.43.166",
+            "lat": "40.4500",
+            "local_key": "394bc2e66722d93e",
+            "lon": "-3.7100",
+            "model": "SP22A",
+            "name": "Radiador Terra",
+            "online": false,
+            "owner_id": "81610754",
+            "product_id": "fbvia0apnlnattcy",
+            "product_name": "Smart Socket-16A",
+            "status": [
+                {
+                    "code": "switch_1",
+                    "value": true
+                },
+                {
+                    "code": "countdown_1",
+                    "value": 0
+                },
+                {
+                    "code": "add_ele",
+                    "value": 52
+                },
+                {
+                    "code": "cur_current",
+                    "value": 0
+                },
+                {
+                    "code": "cur_power",
+                    "value": 0
+                },
+                {
+                    "code": "cur_voltage",
+                    "value": 2290
+                }
+            ],
+            "sub": false,
+            "time_zone": "+01:00",
+            "uid": "eu1676373648815AA3lt",
+            "update_time": 1678451803,
+            "uuid": "762e226bd66c0c57"
+        },
+        {
+            "active_time": 1678450999,
+            "biz_type": 18,
+            "category": "cz",
+            "create_time": 1678450999,
+            "icon": "smart/icon/ay1514359068372Hd98B/c3a67a5857f715ff87995c5875cce60f.jpg",
+            "id": "bfe4493bd61c23ba2djh4h",
+            "ip": "90.163.43.166",
+            "lat": "40.4500",
+            "local_key": "1abdbd08d1c65201",
+            "lon": "-3.7100",
+            "model": "SP22A",
+            "name": "Radiador Sal\u00f3n",
+            "online": false,
+            "owner_id": "81610754",
+            "product_id": "fbvia0apnlnattcy",
+            "product_name": "Smart Socket-16A",
+            "status": [
+                {
+                    "code": "switch_1",
+                    "value": true
+                },
+                {
+                    "code": "countdown_1",
+                    "value": 0
+                },
+                {
+                    "code": "add_ele",
+                    "value": 68
+                },
+                {
+                    "code": "cur_current",
+                    "value": 0
+                },
+                {
+                    "code": "cur_power",
+                    "value": 0
+                },
+                {
+                    "code": "cur_voltage",
+                    "value": 2207
+                }
+            ],
+            "sub": false,
+            "time_zone": "+01:00",
+            "uid": "eu1676373648815AA3lt",
+            "update_time": 1678451045,
+            "uuid": "74230db39097c943"
+        }
+    ],
+    "success": true,
+    "t": 1678705279545,
+    "tid": "6213929cc18e11ed904372ab8eab5dd5",
+    "fetches": 1,
+    "total": 5,
+    "file": {
+        "name": "tuya-raw.json",
+        "description": "Full raw list of Tuya devices.",
+        "account": "adgvrfkwhc5ap44djnd4",
+        "date": "2023-03-13T12:01:20.393769",
+        "tinytuya": "1.11.0"
+    }
+}

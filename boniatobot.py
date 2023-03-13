@@ -6,10 +6,13 @@ import bot_constants as C
 import json
 from urllib.request import urlopen
 import time
-from bot_utils import check_permission, error_handler, get_debts, message_price_handler, set_timer, unknown, unset
+from bot_utils import calentador_off, calentador_on, check_permission, consult_subtracts, error_handler, get_debts, message_price_handler, reset_subtracts, set_timer, unknown, unset
 from splitwise import Splitwise
 from telegram import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters, CallbackContext
+
+
+# ssh martin@192.168.1.20
 
 async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Que passsa {update.effective_user.first_name}')
@@ -17,6 +20,9 @@ async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def chill(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     frase = random.choice(C.ANDREA_PHRASES)
     await update.message.reply_text(frase)
+# async def movie(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+#     frase = random.choice(MOVIE)
+#     await update.message.reply_text(frase)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Bienvenido al Boniato Bot.\n  \nLos comandos los puedes encontrar abajo ;)')
@@ -55,7 +61,8 @@ async def proyector_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             os.system("irsend SEND_ONCE BENQ_W1070 KEY_POWER")
     else:
         await update.message.reply_text(f'No tienes permiso para emitir esa orden!')
-      
+     
+
 async def proyector_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if check_permission(update):
         await update.message.reply_text(f'Apagando proyector. Boas noites.')
@@ -86,43 +93,28 @@ async def add_subtract(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         json.dump(data, f, indent=4)
     await update.message.reply_text(f'{mangue} Añadido ;)')
     
-        
-async def reset_subtracts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    data = {}
-    with open(C.SUBTRACTS_FILE,'w') as f:
-        if not os.path.getsize(C.SUBTRACTS_FILE) == 0:
-            data = json.load(f)
-            f.write(json.dumps(data))
-            
-async def consult_subtracts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    with open(C.SUBTRACTS_FILE,'r+') as f:
-            data = json.load(f)
-            text = ''
-            for key in data.keys():
-                # items = data[key]
-                text += f'{key} ha acumulado:\n{data[key]}\n'
-    await update.message.reply_text(text)
-                
-app = ApplicationBuilder().token(C.TOKEN).build()
 
-app.add_handler(CommandHandler("holita", hola))
-app.add_handler(CommandHandler("chill_andrea", chill))
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("proyector_on", proyector_on))
-app.add_handler(CommandHandler("proyector_off", proyector_off))
-app.add_handler(CommandHandler("precio", price))
-app.add_handler(CommandHandler("status_setas", temp_and_humidity))
-app.add_handler(CommandHandler("mangue", add_subtract))
-app.add_handler(CommandHandler("mangue_lista", consult_subtracts))
-app.add_handler(CommandHandler("mangue_reset", reset_subtracts))
-app.add_handler(CommandHandler("deudas", splitwise_debts))
-app.add_handler(MessageHandler(filters.Text(C.BUTTONS_PRICE), message_price_handler))
-app.add_handler(CommandHandler("antiruido", set_timer))
-app.add_handler(CommandHandler("borrar_antiruido", unset))
+if __name__ == "__main__":     
+    app = ApplicationBuilder().token(C.TOKEN).build()
+    app.add_handler(CommandHandler("holita", hola))
+    app.add_handler(CommandHandler("chill_andrea", chill))
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("proyector_on", proyector_on))
+    app.add_handler(CommandHandler("proyector_off", proyector_off))
+    app.add_handler(CommandHandler("calentador_on", calentador_on))
+    app.add_handler(CommandHandler("calentador_off", calentador_off))
+    app.add_handler(CommandHandler("precio", price))
+    app.add_handler(CommandHandler("status_setas", temp_and_humidity))
+    app.add_handler(CommandHandler("mangue", add_subtract))
+    app.add_handler(CommandHandler("mangue_lista", consult_subtracts))
+    app.add_handler(CommandHandler("mangue_reset", reset_subtracts))
+    app.add_handler(CommandHandler("deudas", splitwise_debts))
+    app.add_handler(MessageHandler(filters.Text(C.BUTTONS_PRICE), message_price_handler))
+    app.add_handler(CommandHandler("antiruido", set_timer))
+    app.add_handler(CommandHandler("borrar_antiruido", unset))
 
-#Error handling
-app.add_error_handler(error_handler)
-#unknown_handler = MessageHandler(filters.COMMAND, unknown)
-print('Bontiato Bot running...'.center(70))
-app.run_polling()
-print('Bontiato Bot ended!'.center(70))
+    
+    app.add_error_handler(error_handler) # error handling
+    print('Bontiato Bot running...'.center(70))
+    app.run_polling()
+    print('Bontiato Bot ended!'.center(70))

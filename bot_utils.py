@@ -15,7 +15,11 @@ from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 import logging
 import bot_constants as C
+import tinytuya
 
+with open(C.DEVICES_FILE, 'r') as d:
+    devices = json.load(d)
+    
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
@@ -50,7 +54,34 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     )
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Lo siento, ese comando no lo conozco")
+async def calentador_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if check_permission(update):
+        heater = load_device('calentador')
+        if heater.status()['dps']['1']:
+            await update.message.reply_text(f'Ya está encendido!')
+        else:
+           heater.turn_on()
+           await update.message.reply_text(f'Calentador ON 🔥')
+    else:
+        await update.message.reply_text(f'No tienes permiso para emitir esa orden!')
 
+async def calentador_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if check_permission(update):
+        heater = load_device('calentador')
+        heater.turn_off()
+        await update.message.reply_text(f'Calentador OFF ❄️')
+    else:
+        await update.message.reply_text(f'No tienes permiso para emitir esa orden!')
+
+def load_device(device_name: str) -> tinytuya.OutletDevice:
+    device_data = [i for i in devices if device_name in i['name'].lower()][0]
+    device_ID = device_data['id']
+    device_IP = device_data['ip']
+    # device_KEY = device_data['key']
+    device = tinytuya.OutletDevice(device_ID, device_IP, None,
+                                        version=3.3, dev_type='default')
+    return device
+   
 async def get_price():  
     async with aiohttp.ClientSession() as session:
         pvpc_handler = PVPCData(session = session, tariff = "2.0TD")
@@ -99,24 +130,23 @@ async def get_price_graph(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     plt.plot(X_, Y_, 'g')
     plt.savefig(dest_path)
     await update.message.reply_photo(dest_path, reply_markup=ReplyKeyboardRemove())
-    # os.remove(dest_path)
 
-# async def add_splitwise_expense(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-#     sObj = Splitwise(C.key, C.consumer_secret, api_key=C.api_key)
-#     if len(context.args)<2:
-#         await update.message.reply_text(f'Debes decirme primero la descripcion y luego el precio!')
-#         return
-#     grupo = [i for i in sObj.getGroups() if i.id==C.SPLITWISE_GROUP_CASA][0]
-#     description = context.args[0]
-#     cost = float(context.args[1])
-#     expense=Expense()
-#     expense.group_id = C.SPLITWISE_GROUP_CASA
-#     expense.description =description
-#     expense.cost = cost
-#     expense.setUsers = grupo.getMembers()
-#     # expense.created_by
-#     expens=sObj.createExpense(expense)
-#     await update.message.reply_text(f'Gasto añadido {expens}')
+async def reset_subtracts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    data = {}
+    with open(C.SUBTRACTS_FILE,'w') as f:
+        if not os.path.getsize(C.SUBTRACTS_FILE) == 0:
+            f.write(json.dumps(data))
+            
+async def consult_subtracts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if os.stat(C.SUBTRACTS_FILE).st_size == 0:
+        await update.message.reply_text('No existen mangues actualmente!')
+        return
+    with open(C.SUBTRACTS_FILE,'r+') as f:
+            data = json.load(f)
+            text = ''
+            for key in data.keys():
+                text += f'{key} ha acumulado:\n{data[key]}\n'
+    await update.message.reply_text(text)
 
 def get_debts(grupo):
     mensajes=[]
@@ -126,7 +156,6 @@ def get_debts(grupo):
         mensaje=f"{deudor_name} debe {debt.getAmount()} {debt.currency_code} a {deudado_name}"
         mensajes.append(mensaje)
     return mensajes
-
 
 async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     job = context.job
