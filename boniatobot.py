@@ -11,7 +11,6 @@ from splitwise import Splitwise
 from telegram import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters, CallbackContext
 
-
 # ssh martin@192.168.1.20
 
 async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -61,7 +60,6 @@ async def proyector_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             os.system("irsend SEND_ONCE BENQ_W1070 KEY_POWER")
     else:
         await update.message.reply_text(f'No tienes permiso para emitir esa orden!')
-     
 
 async def proyector_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if check_permission(update):

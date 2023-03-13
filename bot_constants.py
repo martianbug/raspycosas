@@ -19,7 +19,10 @@ TOKEN = "6055412517:AAFpxYgauYw1df_Ak3dcKf86DVs4zsMDTf8"
 BUTTONS_PRICE = ['Precio ahora', 'Gráfica del día']
 IMAGE_FOLDER = 'bot_images/'
 
-SUBTRACTS_FILE = 'subtracts.json'
+data_prefix = 'data/'
+SUBTRACTS_FILE = data_prefix + 'subtracts.json'
+DEVICES_FILE = data_prefix + 'devices.json'
+
 SERVER_URL = "http://192.168.1.123"
 
 ANDREA_PHRASES = [
