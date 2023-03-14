@@ -23,6 +23,7 @@ IMAGE_FOLDER = 'bot_images/'
 # Data constants
 data_prefix = 'data/'
 SUBTRACTS_FILE = data_prefix + 'subtracts.json'
+PANEOS_FILE = data_prefix + 'paneos.json'
 DEVICES_FILE = data_prefix + 'devices.json'
 
 

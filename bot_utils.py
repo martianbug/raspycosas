@@ -1,21 +1,26 @@
-from datetime import datetime
-import json
-import html
-import traceback
 import asyncio
+import html
+import json
+import logging
 import os
-from aiopvpc import PVPCData
-import aiohttp
-from telegram import ReplyKeyboardRemove, Update
+import shutil
+import time
+import traceback
+from datetime import datetime
 from heapq import nlargest, nsmallest
-from scipy.interpolate import interp1d
+
+import aiohttp
 import matplotlib.pyplot as plt
 import numpy as np
+import tinytuya
+from aiopvpc import PVPCData
+from scipy.interpolate import interp1d
+from splitwise import Splitwise
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
-import logging
+
 import bot_constants as C
-import tinytuya
 
 with open(C.DEVICES_FILE, 'r') as d:
     devices = json.load(d)
@@ -75,6 +80,32 @@ async def calentador_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await update.message.reply_text(f'Calentador OFF ❄️')
     else:
         await update.message.reply_text(f'No tienes permiso para emitir esa orden!')
+async def splitwise_debts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    sObj = Splitwise(C.key, C.consumer_secret, api_key=C.api_key)
+    grupo = [i for i in sObj.getGroups() if i.id==C.SPLITWISE_GROUP_CASA][0]
+    await update.message.reply_text('\n'.join(get_debts(grupo)))
+   
+async def proyector_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if check_permission(update):
+        if shutil.which('irsend') is None:
+            context.error = Exception('Bot operando en terminal Windows. No es posible encederlo')
+            await update.message.reply_text(f'No se puede encender proyector ahora.')
+            await asyncio.create_task(error_handler(update, context))
+        else:
+            await update.message.reply_text(f'Encendiendo proyector!')
+            os.system("irsend SEND_ONCE BENQ_W1070 KEY_POWER")
+    else:
+        await update.message.reply_text(f'No tienes permiso para emitir esa orden!')
+
+async def proyector_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if check_permission(update):
+        await update.message.reply_text(f'Apagando proyector. Boas noites.')
+        os.system("irsend SEND_START BENQ_W1070 KEY_POWER")
+        time.sleep(0.5) 
+        os.system("irsend SEND_STOP BENQ_W1070 KEY_POWER")
+        os.system("irsend SEND_ONCE BENQ_W1070 KEY_POWER")
+    else:
+        await update.message.reply_text(f'No tienes permiso para emitir esa orden!')
 
 def load_device(device_name: str) -> tinytuya.OutletDevice:
     device_data = [i for i in devices if device_name in i['name'].lower()][0]
@@ -84,7 +115,40 @@ def load_device(device_name: str) -> tinytuya.OutletDevice:
     device = tinytuya.OutletDevice(device_ID, device_IP, None,
                                         version=3.3, dev_type='default')
     return device
-   
+
+async def add_subtract(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if len(context.args) < 1:
+        await update.message.reply_text(f'Debes decirme algo que hayas pillau!')
+        return
+    id = str(update.effective_user.first_name)
+    mangue = " ".join(context.args)
+    with open(C.SUBTRACTS_FILE,'r+') as f:
+        if os.path.getsize(C.SUBTRACTS_FILE) == 0:
+           data = {}
+        else:
+            data = json.load(f)
+    with open(C.SUBTRACTS_FILE, "w") as f:
+        data[id] = data[id] + '\n' + mangue if id in data else mangue
+        json.dump(data, f, indent=4)
+    await update.message.reply_text(f'"{mangue}" añadido ;)')
+    
+async def add_paneo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if len(context.args) < 1:
+        await update.message.reply_text(f'Debes decirme un buen paneo!')
+        return
+    id = str(update.effective_user.first_name)
+    paneo = " ".join(context.args)
+    with open(C.PANEOS_FILE,'r+') as f:
+        if os.path.getsize(C.SUBTRACTS_FILE) == 0:
+           data = {}
+        else:
+            data = json.load(f)
+            
+    with open(C.PANEOS_FILE, "w") as f:
+        data[id] = data[id] + '\n' + paneo if id in data else paneo
+        json.dump(data, f, indent=4)
+    await update.message.reply_text(f'"{paneo}" añadido ;)')
+
 async def get_price():  
     async with aiohttp.ClientSession() as session:
         pvpc_handler = PVPCData(session = session, tariff = "2.0TD")
@@ -134,22 +198,37 @@ async def get_price_graph(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     plt.savefig(dest_path)
     await update.message.reply_photo(dest_path, reply_markup=ReplyKeyboardRemove())
 
+
+
 async def reset_subtracts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    reset_file(C.SUBTRACTS_FILE)
+    
+async def reset_paneos(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    reset_file(C.PANEOS_FILE)
+    
+def reset_file(file: str) -> None:
     data = {}
-    with open(C.SUBTRACTS_FILE,'w') as f:
-        if not os.path.getsize(C.SUBTRACTS_FILE) == 0:
+    with open(file,'w') as f:
+        if not os.path.getsize(file) == 0:
             f.write(json.dumps(data))
             
-async def consult_subtracts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+def consult_file(file: str) -> None:
     if os.stat(C.SUBTRACTS_FILE).st_size == 0:
-        await update.message.reply_text('No existen mangues actualmente!')
-        return
+        return 'Lista vacía!'
     with open(C.SUBTRACTS_FILE,'r+') as f:
             data = json.load(f)
             text = ''
             for key in data.keys():
                 text += f'{key} ha acumulado:\n{data[key]}\n'
-    await update.message.reply_text(text)
+            return text
+
+async def consult_subtracts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    answer = consult_file(C.SUBTRACTS_FILE)
+    await update.message.reply_text(answer)
+    
+async def consult_paneos(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    answer = consult_file(C.PANEOS_FILE)
+    await update.message.reply_text(answer)
 
 def get_debts(grupo):
     mensajes=[]
