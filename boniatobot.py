@@ -5,11 +5,14 @@ import random
 import bot_constants as C
 import json
 from urllib.request import urlopen
+import requests
+from translate import Translator
 import time
 from bot_utils import calentador_off, calentador_on, check_permission, consult_subtracts, error_handler, get_debts, message_price_handler, reset_subtracts, set_timer, unknown, unset
 from splitwise import Splitwise
-from telegram import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters, CallbackContext
+
 # ssh martin@192.168.1.20
 
 async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -21,9 +24,6 @@ async def chill(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 # async def movie(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 #     frase = random.choice(MOVIE)
 #     await update.message.reply_text(frase)
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text(f'Bienvenido al Boniato Bot.\n  \nLos comandos los puedes encontrar abajo ;)')
 
 def get_data(address, *args):    
     print(f"{address}: {args}")
@@ -78,10 +78,20 @@ async def price(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 reply_keyboard, one_time_keyboard=True, input_field_placeholder=""
             ),
         )
-
-async def get_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:    
-    return update.message.text
-
+    
+async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    translator= Translator(from_lang = 'en', to_lang="es", pro = True)
+    complete_url = C.URL_WEATHER + "appid=" + C.WEATHER_API_KEY + "&q=" + 'Peña Grande'
+    response = requests.get(complete_url)
+    x = response.json()
+    if x["cod"] != "404":
+        y = x["main"]
+        temp = round(y["temp"] - 273.15, 2)
+        humidity = y["humidity"]
+        z = x["weather"][0]['description']
+        z_translated = translator.translate(z.capitalize())
+    await update.message.reply_text(f"La temperatura en Madrid es {temp} °C, con una humedad del {humidity}%. {z_translated}")
+    
 async def add_subtract(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if len(context.args) < 1:
         await update.message.reply_text(f'Debes decirme algo que hayas pillau!')
@@ -97,47 +107,18 @@ async def add_subtract(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         data[id] = data[id] + '\n' + mangue if id in data else mangue
         json.dump(data, f, indent=4)
     await update.message.reply_text(f'"{mangue}" añadido ;)')
-    
 
-async def add_mangue(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await update.message.reply_text(
-        "sabab",
-        reply_markup=ReplyKeyboardRemove(),
-    )
-    return 1
-
-async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await update.message.reply_text(
-        "Adeu motherfucker", reply_markup=ReplyKeyboardRemove()
-    )
-    return ConversationHandler.END
-
-async def mangue(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await update.message.reply_text(
-        "Dime algo que hayas pillao",
-    )
-    return 1
-mangue_conver = ConversationHandler(
-    entry_points=[CommandHandler("mangue", mangue)],
-    states={
-        1: [MessageHandler(filters.TEXT, add_mangue)],
-    },
-    fallbacks=[CommandHandler("cancel", cancel)],
-)
- 
 if __name__ == "__main__":     
     app = ApplicationBuilder().token(C.TOKEN).build()
     app.add_handler(CommandHandler("mangue", add_subtract))
-    # app.add_handler(CommandHandler("mangue", mangue))
-    
     app.add_handler(CommandHandler("holita", hola))
     app.add_handler(CommandHandler("chill_andrea", chill))
-    app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("proyector_on", proyector_on))
     app.add_handler(CommandHandler("proyector_off", proyector_off))
     app.add_handler(CommandHandler("calentador_on", calentador_on))
     app.add_handler(CommandHandler("calentador_off", calentador_off))
     app.add_handler(CommandHandler("precio", price))
+    app.add_handler(CommandHandler("tiempo", weather))
     app.add_handler(CommandHandler("status_setas", temp_and_humidity))
     app.add_handler(CommandHandler("mangue_lista", consult_subtracts))
     app.add_handler(CommandHandler("mangue_reset", reset_subtracts))
@@ -146,7 +127,6 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("antiruido", set_timer))
     app.add_handler(CommandHandler("borrar_antiruido", unset))
 
-    
     app.add_error_handler(error_handler) # error handling
     print('Bontiato Bot running...'.center(70))
     app.run_polling()

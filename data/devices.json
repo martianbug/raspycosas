@@ -28,8 +28,8 @@
         "biz_type": 18,
         "sub": false,
         "icon": "https://images.tuyaeu.com/smart/icon/ay1514359068372Hd98B/c3a67a5857f715ff87995c5875cce60f.jpg",
-        "ip": "",
-        "version": ""
+        "ip": "192.168.1.25",
+        "version": "3.3"
     },
     {
         "name": "Radiador Aposento",
@@ -43,8 +43,8 @@
         "biz_type": 18,
         "sub": false,
         "icon": "https://images.tuyaeu.com/smart/icon/ay1514359068372Hd98B/c3a67a5857f715ff87995c5875cce60f.jpg",
-        "ip": "",
-        "version": ""
+        "ip": "192.168.1.40",
+        "version": "3.3"
     },
     {
         "name": "Radiador Terra",
@@ -75,7 +75,7 @@
         "model": "SP22A",
         "sub": false,
         "icon": "https://images.tuyaeu.com/smart/icon/ay1514359068372Hd98B/c3a67a5857f715ff87995c5875cce60f.jpg",
-        "ip": "",
-        "version": ""
+        "ip": "192.168.1.39",
+        "version": "3.3"
     }
 ]

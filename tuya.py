@@ -6,17 +6,18 @@ import tinytuya
 # Project code: p1678452019575ty5dj5
 import json
 
-with open('devices.json', 'r') as d:
+with open('data/devices.json', 'r') as d:
     devices = json.load(d)
     
 calentador_data = [i for i in devices if 'Calentador' in i['name']][0]
-calentador_ID = calentador_data['id']
-calentador_IP = calentador_data['ip']
-calentador_KEY = calentador_data['key']
-calentador = tinytuya.OutletDevice(calentador_ID, calentador_IP, None,
+d_ID = calentador_data['id']
+d_IP = calentador_data['ip']
+d_KEY = calentador_data['key']
+d = tinytuya.OutletDevice(d_ID, 'device22',
                                    version=3.3, dev_type='default')
-# cloud = tinytuya.Cloud(
-data = calentador.status() 
+d.set_dpsUsed({"1": None}) 
+data = d.status() 
 print('Device status: %r' % data)
-calentador.turn_on()
-calentador.turn_off()
+# cloud = tinytuya.Cloud(
+d.turn_on()
+d.turn_off()

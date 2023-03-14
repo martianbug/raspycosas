@@ -1,0 +1,157 @@
+{
+    "timestamp": 1678791121.5963302,
+    "devices": [
+        {
+            "id": "bf84d2cd783bc2ed48lu45",
+            "ip": "192.168.1.40",
+            "active": 2,
+            "ablilty": 0,
+            "encrypt": true,
+            "productKey": "keyqwtgrcsf3hxng",
+            "name": "Radiador Aposento",
+            "key": "f43a4e9a843576c9",
+            "mac": "18:69:d8:72:1a:a1",
+            "token": "",
+            "wf_cfg": "",
+            "dev_type": "default",
+            "err": "",
+            "type": "default",
+            "dps": {
+                "dps": {
+                    "1": true,
+                    "9": 0,
+                    "17": 17,
+                    "18": 0,
+                    "19": 0,
+                    "20": 2224,
+                    "21": 1,
+                    "22": 626,
+                    "23": 31406,
+                    "24": 18153,
+                    "25": 1160,
+                    "26": 0
+                }
+            },
+            "origin": "broadcast",
+            "ver": "3.3"
+        },
+        {
+            "id": "9b891945cda31a53d6e11k",
+            "ip": "192.168.1.10",
+            "active": 2,
+            "ablilty": 0,
+            "encrypt": true,
+            "productKey": "keyyj3fy8x98arty",
+            "token": true,
+            "name": "",
+            "key": "",
+            "mac": "",
+            "wf_cfg": "",
+            "dev_type": "default",
+            "origin": "broadcast",
+            "ver": "3.5"
+        },
+        {
+            "id": "68282475840d8e516505",
+            "ip": "192.168.1.23",
+            "active": 2,
+            "ability": 0,
+            "mode": 0,
+            "encrypt": true,
+            "productKey": "0fHWRe8ULjtmnBNd",
+            "name": "Calentador Teckin 1",
+            "key": "99ac2b5066de06bf",
+            "mac": "84:0d:8e:51:65:05",
+            "ablilty": "",
+            "token": "",
+            "wf_cfg": "",
+            "dev_type": "default",
+            "err": "",
+            "type": "default",
+            "dps": {
+                "devId": "68282475840d8e516505",
+                "dps": {
+                    "1": true,
+                    "9": 0,
+                    "18": 0,
+                    "19": 0,
+                    "20": 2258,
+                    "21": 1,
+                    "22": 652,
+                    "23": 32258,
+                    "24": 18691,
+                    "25": 1115
+                }
+            },
+            "origin": "broadcast",
+            "ver": "3.3"
+        },
+        {
+            "id": "bf05320ecd2f1b92aevsfc",
+            "ip": "192.168.1.25",
+            "active": 2,
+            "ablilty": 0,
+            "encrypt": true,
+            "productKey": "keyqwtgrcsf3hxng",
+            "name": "Radiador Cella",
+            "key": "64c57233e171b7f5",
+            "mac": "18:69:d8:72:b2:6a",
+            "token": "",
+            "wf_cfg": "",
+            "dev_type": "default",
+            "err": "",
+            "type": "default",
+            "dps": {
+                "dps": {
+                    "1": true,
+                    "9": 0,
+                    "17": 6,
+                    "18": 6518,
+                    "19": 14394,
+                    "20": 2210,
+                    "21": 1,
+                    "22": 628,
+                    "23": 31843,
+                    "24": 18227,
+                    "25": 1140,
+                    "26": 0
+                }
+            },
+            "origin": "broadcast",
+            "ver": "3.3"
+        },
+        {
+            "id": "bfe4493bd61c23ba2djh4h",
+            "ip": "192.168.1.39",
+            "active": 2,
+            "ablilty": 0,
+            "encrypt": true,
+            "productKey": "keyqwtgrcsf3hxng",
+            "name": "Radiador Sal\u00f3n",
+            "key": "1abdbd08d1c65201",
+            "mac": "84:e3:42:74:32:4f",
+            "token": "",
+            "wf_cfg": "",
+            "dev_type": "default",
+            "err": "",
+            "type": "default",
+            "dps": {
+                "dps": {
+                    "1": true,
+                    "9": 0,
+                    "18": 0,
+                    "19": 0,
+                    "20": 2214,
+                    "21": 1,
+                    "22": 617,
+                    "23": 30117,
+                    "24": 17267,
+                    "25": 1208,
+                    "26": 0
+                }
+            },
+            "origin": "broadcast",
+            "ver": "3.3"
+        }
+    ]
+}
