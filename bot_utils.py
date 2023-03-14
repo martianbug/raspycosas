@@ -198,8 +198,6 @@ async def get_price_graph(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     plt.savefig(dest_path)
     await update.message.reply_photo(dest_path, reply_markup=ReplyKeyboardRemove())
 
-
-
 async def reset_subtracts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     reset_file(C.SUBTRACTS_FILE)
     
@@ -213,9 +211,9 @@ def reset_file(file: str) -> None:
             f.write(json.dumps(data))
             
 def consult_file(file: str) -> None:
-    if os.stat(C.SUBTRACTS_FILE).st_size == 0:
+    if os.stat(file).st_size == 0:
         return 'Lista vacía!'
-    with open(C.SUBTRACTS_FILE,'r+') as f:
+    with open(file,'r+') as f:
             data = json.load(f)
             text = ''
             for key in data.keys():
