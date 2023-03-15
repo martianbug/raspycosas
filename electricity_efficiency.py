@@ -53,11 +53,10 @@ async def get_price_now():
     else:
         text+=' Esto es normalito 🥹'
 
-async def main():
+# @asyncio.coroutine
+async def main(loop):
     t, _ = calculate_weather(WEATHER_API_KEY, URL_WEATHER)
-    # prices = await asyncio.create_task(get_prices())
-    
-    prices = get_prices()
+    prices = await asyncio.create_task(get_prices())
     lowest_prices = nsmallest(6, prices.values())
     lowest_prices = nlargest(6, prices.values())
     
@@ -69,4 +68,6 @@ async def main():
     time.sleep(2.4)
     
 if __name__ == "__main__":
-    main()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main(loop))
+    loop.close()
