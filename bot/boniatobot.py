@@ -1,7 +1,6 @@
 
-import random
 from urllib.request import urlopen
-
+from bot.bicimad_utils import login_and_get_vals, print_results_casa
 import requests
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import (ApplicationBuilder, CallbackContext, CommandHandler,
@@ -17,9 +16,6 @@ from bot_utils import *
 async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Que passsa {update.effective_user.first_name}')
 
-async def chill(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    frase = random.choice(C.ANDREA_PHRASES)
-    await update.message.reply_text(frase)
 # async def movie(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 #     frase = random.choice(MOVIE)
 #     await update.message.reply_text(frase)
@@ -29,19 +25,6 @@ def get_data(address, *args):
     global hum
     hum = args[1]
 
-async def temp_and_humidity(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    page = urlopen(C.SERVER_URL)
-    html_bytes = page.read()
-    html = html_bytes.decode("utf-8")
-    if 'error' in html:
-        await update.message.reply_text(f'Parece que hay un error :) Resetear chip\n🍄🍄')
-        return
-    temp_index = html.find("ura:")
-    temp = html[temp_index+5:temp_index+12]
-    hum_index = html.find("iva:")
-    hum = html[hum_index+5:hum_index+9]
-    await update.message.reply_text(f'La temperatura es {temp}\nLa humedad relativa es del {hum}\n🍄🍄')
-    
 async def price(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     reply_keyboard = [[C.BUTTONS_PRICE[0], C.BUTTONS_PRICE[1]]]
     await update.message.reply_text(
@@ -63,11 +46,32 @@ async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         z = x["weather"][0]['description']
         z_translated = translator.translate(z.capitalize())
     await update.message.reply_text(f"La temperatura en Madrid es {temp} °C, con una humedad del {humidity}%. {z_translated}")
+
+
+async def get_casa_bikes(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    message = print_results_casa(login_and_get_vals(coordinates=C.coordinates))
+    await update.message.reply_text(update.effective_chat.id, message)
     
+async def get_bikes_nearby(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    coordinates = {
+        'longitude': context.location.longitude,
+        'latitude': context.location.latitude,
+        'radius': '600'
+    }
+    message = print_results_casa(login_and_get_vals(coordinates=coordinates))
+    await update.message.reply_text(update.effective_chat.id, message)
+
+# @bot.message_handler(func=lambda m: True)
+# def print_content(m):
+#     print(m)
+
 
 if __name__ == "__main__":     
     app = ApplicationBuilder().token(C.TOKEN).build()
     app.add_handler(CommandHandler("holita", hola))
+    app.add_handler(CommandHandler("bicimadcasa", get_casa_bikes))
+    app.add_handler(CommandHandler("bicimadlocation", get_bikes_nearby))
+    
     app.add_handler(CommandHandler("chill_andrea", chill))
     app.add_handler(CommandHandler("proyector_on", proyector_on))
     app.add_handler(CommandHandler("proyector_off", proyector_off))
@@ -82,7 +86,7 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("paneo", add_paneo))
     app.add_handler(CommandHandler("paneos_lista", consult_paneos))
     app.add_handler(CommandHandler("paneos_reset", reset_paneos))
-    app.add_handler(CommandHandler("deudas", splitwise_debts))
+    # app.add_handler(CommandHandler("deudas", splitwise_debts))
     app.add_handler(MessageHandler(filters.Text(C.BUTTONS_PRICE), message_price_handler))
     app.add_handler(CommandHandler("antiruido", set_timer))
     app.add_handler(CommandHandler("borrar_antiruido", unset))
