@@ -1,6 +1,6 @@
 
 from urllib.request import urlopen
-from bot.bicimad_utils import login_and_get_vals, print_results_casa
+from bicimad_utils import login_and_get_vals, print_results_casa
 import requests
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import (ApplicationBuilder, CallbackContext, CommandHandler,
