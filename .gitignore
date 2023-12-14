@@ -12,3 +12,4 @@ data/dataframe.csv
 ltex.dictionary.en-US.txt
 
 data/didone_corpus_bin
+*/*my_secrets.py
