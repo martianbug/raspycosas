@@ -2,6 +2,8 @@
 from urllib.request import urlopen
 from bicimad_utils import login_and_get_vals, print_results_casa
 import requests
+import my_secrets
+
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import (ApplicationBuilder, CallbackContext, CommandHandler,
                           ContextTypes, ConversationHandler, MessageHandler,
@@ -67,7 +69,7 @@ async def get_bikes_nearby(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 
 if __name__ == "__main__":     
-    app = ApplicationBuilder().token(C.TOKEN).build()
+    app = ApplicationBuilder().token(my_secrets.TOKEN).build()
     app.add_handler(CommandHandler("holita", hola))
     app.add_handler(CommandHandler("bicimadcasa", get_casa_bikes))
     app.add_handler(CommandHandler("bicimadlocation", get_bikes_nearby))
