@@ -1,12 +1,10 @@
 '''
 This file handles the login and extraction of values for some specific stations
 '''
-
-import config
 from stations import station_names
 import requests
 from collections import defaultdict
-import telebot
+import bot_constants as C
 
 url_login = 'https://openapi.emtmadrid.es/v1/mobilitylabs/user/login/'
 url_station_info = 'https://openapi.emtmadrid.es/v1/transport/bicimad/stations/{}'
@@ -14,8 +12,8 @@ url_station_around = 'https://openapi.emtmadrid.es/v1/transport/bicimad/stations
 
 def login():
     headers = {
-        'X-ClientId': config.client_id,
-        'passKey': config.pass_key
+        'X-ClientId': C.client_id,
+        'passKey': C.pass_key
     }
     r = requests.get(url_login, headers=headers)
     return(r.json()['data'][0]['accessToken'])
@@ -40,7 +38,7 @@ def login_and_get_vals(coordinates = None):
     It returns a dictionary where the key is the number of available bikes. 
     That will help to sort the stations by available bikes
     '''
-    station_ids = config.stations_id
+    station_ids = C.stations_id
     access_token = login()
     results = defaultdict(list)
     if coordinates:
@@ -57,8 +55,8 @@ def print_results_casa(results):
     full_message = ''
     for available_bikes in sorted(results, reverse=True):
         for station_id in results[available_bikes]:
-            station_name = station_names[station_id]['name'].split(' - ')[-1] if station_id not in config.custom_station_names.keys() else config.custom_station_names[station_id]
-            single_message = config.message['single'].format(station_name, available_bikes)
+            station_name = station_names[station_id]['name'].split(' - ')[-1] if station_id not in C.custom_station_names.keys() else C.custom_station_names[station_id]
+            single_message = C.message['single'].format(station_name, available_bikes)
             full_message += single_message + '\n'
     return(full_message)
 

@@ -79,7 +79,7 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("calentador_off", calentador_off))
     app.add_handler(CommandHandler("precio", price))
     app.add_handler(CommandHandler("tiempo", weather))
-    app.add_handler(CommandHandler("status_setas", temp_and_humidity))
+    # app.add_handler(CommandHandler("status_setas", temp_and_humidity))
     app.add_handler(CommandHandler("mangue", add_subtract))
     app.add_handler(CommandHandler("mangue_lista", consult_subtracts))
     app.add_handler(CommandHandler("mangue_reset", reset_subtracts))

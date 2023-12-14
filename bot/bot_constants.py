@@ -1,6 +1,6 @@
-import secrets
+import my_secrets
 
-pass_key = secrets.pass_key_bicimad
+pass_key = my_secrets.pass_key_bicimad
 client_id = '2b6eac54-0f6c-4897-a79c-23e9b64fed8a'
 stations_id = [1538, 1611, 1645, 1610, 2362]
 custom_station_names = {
