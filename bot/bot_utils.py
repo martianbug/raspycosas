@@ -24,8 +24,7 @@ from telegram.ext import ContextTypes
 
 import bot_constants as C
 
-with open(C.DEVICES_FILE, 'r') as d:
-    devices = json.load(d)
+
     
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -116,6 +115,8 @@ async def proyector_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         await update.message.reply_text(f'No tienes permiso para emitir esa orden!')
 
 def load_device(device_name: str) -> tinytuya.OutletDevice:
+    # with open(C.DEVICES_FILE, 'r') as d:
+    #     devices = json.load(d)
     device_data = [i for i in devices if device_name in i['name'].lower()][0]
     device_ID = device_data['id']
     device_IP = device_data['ip']
