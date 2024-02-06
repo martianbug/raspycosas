@@ -6,3 +6,5 @@ aiopvpc
 seaborn
 translate
 tinytuya
+scipy
+
