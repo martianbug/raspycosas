@@ -66,13 +66,13 @@ async def get_bikes_nearby(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 # @bot.message_handler(func=lambda m: True)
 # def print_content(m):
 #     print(m)
-async def switch_music_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        await update.message.reply_text(f'Musica on!')
-        os.system("pactl load-module module-loopback")
-        
-async def switch_music_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        await update.message.reply_text(f'Musica off!')
-        os.system("pactl load-module module-loopback")
+async def switch_music(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        if os.popen("pactl list short modules | grep module-loopback | wc -l").read()[0]=='1':
+            await update.message.reply_text(f'Apagando musica')
+            os.system("pactl unload-module module-loopback")
+        else:
+            await update.message.reply_text(f'Encendiendo musica')
+            os.system("pactl load-module module-loopback")
 
 
 if __name__ == "__main__":     
@@ -80,8 +80,7 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("holita", hola))
     app.add_handler(CommandHandler("bicimadcasa", get_casa_bikes))
     app.add_handler(CommandHandler("bicimadlocation", get_bikes_nearby))
-    app.add_handler(CommandHandler("musicon", switch_music_on))
-    app.add_handler(CommandHandler("musicoff", switch_music_off))
+    app.add_handler(CommandHandler("music", switch_music))
     
     app.add_handler(CommandHandler("chill_andrea", chill))
     # app.add_handler(CommandHandler("proyector_on", proyector_on))
