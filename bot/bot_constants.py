@@ -1,3 +1,4 @@
+import os
 import my_secrets
 
 pass_key = my_secrets.pass_key_bicimad
@@ -27,6 +28,7 @@ WEATHER_API_KEY = '020c34777ba593331d1bab78e24e44a2'
 
 URL_WEATHER = "http://api.openweathermap.org/data/2.5/weather?"
 SERVER_URL = "http://192.168.1.123"
+
 # Telegram constants
 GROUP_CHAT_ID = '-1001763995292'
 DEVELOPER_CHAT_ID = '63210791'
@@ -35,10 +37,9 @@ BUTTONS_PRICE = ['Precio ahora', 'Gráfica del día']
 IMAGE_FOLDER = 'bot_images/'
 
 # Data constants
-data_prefix = 'data/'
-SUBTRACTS_FILE = data_prefix + 'subtracts.json'
-PANEOS_FILE = data_prefix + 'paneos.json'
-DEVICES_FILE = data_prefix + 'devices.json'
+data_prefix = 'data'
+ITEMS_FILE = os.path.join(data_prefix, 'items.csv')
+DEVICES_FILE = os.path.join(data_prefix, 'devices.json')
 
 ANDREA_PHRASES = [
     "Andrea trancuila respira",

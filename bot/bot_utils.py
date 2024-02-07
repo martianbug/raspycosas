@@ -14,23 +14,33 @@ from heapq import nlargest, nsmallest
 import aiohttp
 import matplotlib.pyplot as plt
 import numpy as np
+import csv
+
 import tinytuya
 from aiopvpc import PVPCData
 from scipy.interpolate import interp1d
-from splitwise import Splitwise
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
 import bot_constants as C
 
-
-    
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
+def read_csv_as_list(file_path):
+    with open(file_path, 'r') as csvfile:
+        data = list(csv.reader(csvfile))[0]
+    return data
+
+def save_list_as_csv(data, file_path):
+    with open(file_path, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter = ',')
+        if data:
+            writer.writerow(data)
+           
 def check_permission(update: object):
     if str(update.effective_chat.id) not in C.ALLOWED_IDS:
         return False
@@ -66,28 +76,29 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Lo siento, ese comando no lo conozco")
     
-async def calentador_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if check_permission(update):
-        heater = load_device('calentador')
-        if heater.status().get('Error'):
-            await update.message.reply_text(f'No es posible conectarse :/')
-            return
-        elif heater.status().get('dps'):
-            await update.message.reply_text(f'Ya está encendido!')
-            heater.turn_on()
-        else:
-           heater.turn_on()
-           await update.message.reply_text(f'Calentador ON 🔥')
-    else:
-        await update.message.reply_text(f'No tienes permiso para emitir esa orden!')
+# async def calentador_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+#     if check_permission(update):
+#         heater = load_device('calentador')
+#         if heater.status().get('Error'):
+#             await update.message.reply_text(f'No es posible conectarse :/')
+#             return
+#         elif heater.status().get('dps'):
+#             await update.message.reply_text(f'Ya está encendido!')
+#             heater.turn_on()
+#         else:
+#            heater.turn_on()
+#            await update.message.reply_text(f'Calentador ON 🔥')
+#     else:
+#         await update.message.reply_text(f'No tienes permiso para emitir esa orden!')
         
-async def calentador_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if check_permission(update):
-        heater = load_device('calentador')
-        heater.turn_off()
-        await update.message.reply_text(f'Calentador OFF ❄️')
-    else:
-        await update.message.reply_text(f'No tienes permiso para emitir esa orden!')
+# async def calentador_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+#     if check_permission(update):
+#         heater = load_device('calentador')
+#         heater.turn_off()
+#         await update.message.reply_text(f'Calentador OFF ❄️')
+#     else:
+#         await update.message.reply_text(f'No tienes permiso para emitir esa orden!')
+        
 # async def splitwise_debts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 #     sObj = Splitwise(C.key, C.consumer_secret, api_key=C.api_key)
 #     grupo = [i for i in sObj.getGroups() if i.id==C.SPLITWISE_GROUP_CASA][0]
@@ -115,50 +126,81 @@ async def proyector_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     else:
         await update.message.reply_text(f'No tienes permiso para emitir esa orden!')
 
-def load_device(device_name: str) -> tinytuya.OutletDevice:
-    # with open(C.DEVICES_FILE, 'r') as d:
-    #     devices = json.load(d)
-    device_data = [i for i in devices if device_name in i['name'].lower()][0]
-    device_ID = device_data['id']
-    device_IP = device_data['ip']
-    # device_KEY = device_data['key']
-    device = tinytuya.OutletDevice(device_ID, device_IP, None,
-                                        version=3.3, dev_type='default')
-    return device
+# def load_device(device_name: str) -> tinytuya.OutletDevice:
+#     # with open(C.DEVICES_FILE, 'r') as d:
+#     #     devices = json.load(d)
+#     device_data = [i for i in devices if device_name in i['name'].lower()][0]
+#     device_ID = device_data['id']
+#     device_IP = device_data['ip']
+#     # device_KEY = device_data['key']
+#     device = tinytuya.OutletDevice(device_ID, device_IP, None,
+#                                         version=3.3, dev_type='default')
+#     return device
 
-async def add_subtract(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def add_item(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    data = []
     if len(context.args) < 1:
-        await update.message.reply_text(f'Debes decirme algo que hayas pillau!')
+        await update.message.reply_text(f'Debes decirme algo para comprar')
         return
-    id = str(update.effective_user.first_name)
-    mangue = " ".join(context.args)
-    with open(C.SUBTRACTS_FILE,'r+') as f:
-        if os.path.getsize(C.SUBTRACTS_FILE) == 0:
-           data = {}
+    item = context.args[0]
+    if not os.path.exists(C.ITEMS_FILE):
+        # f = open(C.ITEMS_FILE, 'a')
+        save_list_as_csv([], C.ITEMS_FILE)
+    with open(C.ITEMS_FILE,'r+') as f:
+        if os.path.getsize(C.ITEMS_FILE) == 0:
+           data = []
         else:
-            data = json.load(f)
-    with open(C.SUBTRACTS_FILE, "w") as f:
-        data[id] = data[id] + '\n' + mangue if id in data else mangue
-        json.dump(data, f, indent=4)
-    await update.message.reply_text(f'"{mangue}" añadido ;)')
-    
-async def add_paneo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if len(context.args) < 1:
-        await update.message.reply_text(f'Debes decirme un buen paneo!')
-        return
-    id = str(update.effective_user.first_name)
-    paneo = " ".join(context.args)
-    with open(C.PANEOS_FILE,'r+') as f:
-        if os.path.getsize(C.SUBTRACTS_FILE) == 0:
-           data = {}
-        else:
-            data = json.load(f)
+            data = read_csv_as_list(C.ITEMS_FILE)
             
-    with open(C.PANEOS_FILE, "w") as f:
-        data[id] = data[id] + '\n' + paneo if id in data else paneo
-        json.dump(data, f, indent=4)
-    await update.message.reply_text(f'"{paneo}" añadido ;)')
+    with open(C.ITEMS_FILE, "w") as f:
+        if item not in set(data):
+            data.append(item)        
+            save_list_as_csv(data, C.ITEMS_FILE)
+        else:
+            await update.message.reply_text(f'Ese item ya estaba!')   
+    await update.message.reply_text(f'"{item}" añadido ;)')
 
+async def delete_item(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if len(context.args) < 1:
+        await update.message.reply_text(f'Debes decirme algo que eliminar!')
+        return
+    item = context.args[0]
+    with open(C.ITEMS_FILE,'r+') as f:
+        if os.path.getsize(C.ITEMS_FILE) == 0:
+           data = []
+        else:
+            data = read_csv_as_list(C.ITEMS_FILE)
+            if item not in data:
+                await update.message.reply_text(f'"{item}" no está en la lista!')
+                return
+            data.remove(item)
+            save_list_as_csv(data, C.ITEMS_FILE)
+    await update.message.reply_text(f'"{item}" eliminado ;)')
+
+async def reset_items(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    save_list_as_csv([], C.ITEMS_FILE)
+    await update.message.reply_text('Lista booorrada :D')
+    
+def reset_file(file: str) -> None:
+    data = {}
+    with open(file,'w') as f:
+        if not os.path.getsize(file) == 0:
+            f.write(json.dumps(data))
+            
+def consult_file_items(file: str) -> None:
+    if os.stat(file).st_size == 0:
+        return 'Lista vacía!'
+    with open(file,'r+') as f:
+            data = read_csv_as_list(C.ITEMS_FILE)
+            if data:
+                return "La lista de la compra actual es:\n" + ", ".join(data)
+            else:
+                return "Lista vacía"
+            
+async def consult_items(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    answer = consult_file_items(C.ITEMS_FILE)
+    await update.message.reply_text(answer)
+    
 async def get_price():  
     async with aiohttp.ClientSession() as session:
         pvpc_handler = PVPCData(session = session, tariff = "2.0TD")
@@ -207,37 +249,7 @@ async def get_price_graph(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     plt.plot(X_, Y_, 'g')
     plt.savefig(dest_path)
     await update.message.reply_photo(dest_path, reply_markup=ReplyKeyboardRemove())
-
-async def reset_subtracts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    reset_file(C.SUBTRACTS_FILE)
     
-async def reset_paneos(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    reset_file(C.PANEOS_FILE)
-    
-def reset_file(file: str) -> None:
-    data = {}
-    with open(file,'w') as f:
-        if not os.path.getsize(file) == 0:
-            f.write(json.dumps(data))
-            
-def consult_file(file: str) -> None:
-    if os.stat(file).st_size == 0:
-        return 'Lista vacía!'
-    with open(file,'r+') as f:
-            data = json.load(f)
-            text = ''
-            for key in data.keys():
-                text += f'{key} ha acumulado:\n{data[key]}\n'
-            return text
-
-async def consult_subtracts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    answer = consult_file(C.SUBTRACTS_FILE)
-    await update.message.reply_text(answer)
-    
-async def consult_paneos(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    answer = consult_file(C.PANEOS_FILE)
-    await update.message.reply_text(answer)
-
 def get_debts(grupo):
     mensajes=[]
     for debt in grupo.simplified_debts:
@@ -279,20 +291,6 @@ async def unset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     job_removed = remove_job_if_exists(str(chat_id), context)
     text = "Recordatorio cancelado!" if job_removed else "No tienes recordatorios activos primo"
     await update.message.reply_text(text)
-
-# async def temp_and_humidity(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-#     page = urlopen(C.SERVER_URL)
-#     html_bytes = page.read()
-#     html = html_bytes.decode("utf-8")
-#     if 'error' in html:
-#         await update.message.reply_text(f'Parece que hay un error :) Resetear chip\n🍄🍄')
-#         return
-#     temp_index = html.find("ura:")
-#     temp = html[temp_index+5:temp_index+12]
-#     hum_index = html.find("iva:")
-#     hum = html[hum_index+5:hum_index+9]
-#     await update.message.reply_text(f'La temperatura es {temp}\nLa humedad relativa es del {hum}\n🍄🍄')
-    
 
 def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
     current_jobs = context.job_queue.get_jobs_by_name(name)
