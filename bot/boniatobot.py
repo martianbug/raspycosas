@@ -1,16 +1,15 @@
 
 from urllib.request import urlopen
-from bicimad_utils import login_and_get_vals, print_results_casa
+from bicimad_utils import login_and_get_vals, print_results, print_results_casa
 import requests
 import my_secrets
-
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import (ApplicationBuilder, CallbackContext, CommandHandler,
                           ContextTypes, ConversationHandler, MessageHandler,
                           filters)
 from translate import Translator
-
 import bot_constants as C
+
 from bot_utils import *
 
 # ssh martin@192.168.1.20
@@ -52,16 +51,17 @@ async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def get_casa_bikes(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = print_results_casa(login_and_get_vals(coordinates=C.coordinates))
-    await update.message.reply_text(update.effective_chat.id, message)
+    await context.bot.send_message(update.effective_chat.id, message)
     
 async def get_bikes_nearby(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     coordinates = {
-        'longitude': context.location.longitude,
-        'latitude': context.location.latitude,
-        'radius': '600'
+        'longitude':  update.message.location.longitude,
+        'latitude':  update.message.location.latitude,
     }
-    message = print_results_casa(login_and_get_vals(coordinates=coordinates))
-    await update.message.reply_text(update.effective_chat.id, message)
+    message = print_results(login_and_get_vals(coordinates=coordinates))    
+    if message == '':
+        message = 'No se han encontrado estaciones cerca! Prueba de nuevo :)' 
+    await context.bot.send_message(update.effective_chat.id, message, parse_mode=ParseMode.HTML)
 
 # @bot.message_handler(func=lambda m: True)
 # def print_content(m):
@@ -79,9 +79,11 @@ if __name__ == "__main__":
     app = ApplicationBuilder().token(my_secrets.TOKEN).build()
     app.add_handler(CommandHandler("holita", hola))
     app.add_handler(CommandHandler("bicimadcasa", get_casa_bikes))
-    app.add_handler(CommandHandler("bicimadlocation", get_bikes_nearby))
-    app.add_handler(CommandHandler("music", switch_music))
+    # app.add_handler(CommandHandler("bicimadlocation", get_bikes_nearby))
+    app.add_handler(MessageHandler(filters.LOCATION, get_bikes_nearby))
+
     
+    app.add_handler(CommandHandler("music", switch_music))
     app.add_handler(CommandHandler("chill_andrea", chill))
     # app.add_handler(CommandHandler("proyector_on", proyector_on))
     # app.add_handler(CommandHandler("proyector_off", proyector_off))

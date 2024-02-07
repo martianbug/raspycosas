@@ -6,7 +6,7 @@ stations_id = [1538, 1611, 1645, 1610, 2362]
 custom_station_names = {
     1538: 'Cuatro Caminos (la de abajo)',
     1645: 'Francos Rodriguez (la que esta arriba)',
-    1611: 'Estrecho (la que está aquí al lado)',
+    1611: 'Estrecho (la de metro Estrecho)',
     1610: 'Cuatro Caminos (la de Orange)',
     2362: 'tu calle, al fondo fondo (izquierda)'
     }
@@ -18,8 +18,9 @@ coordinates = {
 }
 
 message = {
-    'single': 'En la estación de {}; hay {} bicis dispobibles.'
+    'single': 'En la estación de {}; hay <b>{} bicis</b> disponibles.'
 }
+
 WEATHER_API_KEY = '020c34777ba593331d1bab78e24e44a2'
 
 

@@ -80,6 +80,7 @@ async def calentador_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
            await update.message.reply_text(f'Calentador ON 🔥')
     else:
         await update.message.reply_text(f'No tienes permiso para emitir esa orden!')
+        
 async def calentador_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if check_permission(update):
         heater = load_device('calentador')

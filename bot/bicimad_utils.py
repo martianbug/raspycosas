@@ -40,25 +40,45 @@ def login_and_get_vals(coordinates = None):
     '''
     station_ids = C.stations_id
     access_token = login()
-    results = defaultdict(list)
+    results = defaultdict()
     if coordinates:
-        results_coords = get_info_from_cords(access_token, coordinates)
+        for radius in ('100', '200', '500', '600'):
+            coordinates['radius'] = radius
+            results_coords = get_info_from_cords(access_token, coordinates)
+            if len(results_coords) > 4:
+                break
         for res in results_coords:
-            results[res['dock_bikes']].append(res['id'])
+            results[res['id']] = [res['dock_bikes'], res['geometry']['coordinates']]
     else:
         for station_id in station_ids:
             result_station_json = get_station_info(access_token, station_id)
             results[result_station_json['dock_bikes']].append(station_id)
     return(results)
 
-def print_results_casa(results):
+def print_results_casa(results: dict):
     full_message = ''
-    for available_bikes in sorted(results, reverse=True):
-        for station_id in results[available_bikes]:
-            station_name = station_names[station_id]['name'].split(' - ')[-1] if station_id not in C.custom_station_names.keys() else C.custom_station_names[station_id]
-            single_message = C.message['single'].format(station_name, available_bikes)
-            full_message += single_message + '\n'
+    sorted_results = sorted(results.items(), key=lambda x:x[1], reverse=True)
+    for result in sorted_results:
+        station_id = result[0]
+        available_bikes = result[1][0]
+        station_name = station_names[station_id]['name'].split(' - ')[-1] if station_id not in C.custom_station_names.keys() else C.custom_station_names[station_id]
+        single_message = C.message['single'].format(station_name, available_bikes)
+        full_message += single_message + '\n'
     return(full_message)
+
+def print_results(results: dict):
+    full_message = ''
+    for station_id in results.keys():
+        bikes = results[station_id][0]
+        coords = results[station_id][1]
+        full_message += format_station_name(bikes, station_id, coords)
+    return(full_message)
+
+def format_station_name(available_bikes, station_id, coordinates):
+    url = f'google.es/maps/place/{coordinates[0]},{coordinates[1]}'
+    station_name = station_names[station_id]['name'].split(' - ')[-1] if station_id not in C.custom_station_names.keys() else C.custom_station_names[station_id]
+    single_message = C.message['single'].format(f'<a href="{url}">{station_name}</a>', available_bikes)
+    return single_message + '\n'
 
 def get_info_from_cords(access_token, coordinates):
     if not access_token:
