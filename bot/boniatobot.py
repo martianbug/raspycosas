@@ -51,7 +51,7 @@ async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def get_casa_bikes(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = print_results_casa(login_and_get_vals(coordinates=C.coordinates))
-    await context.bot.send_message(update.effective_chat.id, message)
+    await context.bot.send_message(update.effective_chat.id, message, parse_mode=ParseMode.HTML)
     
 async def get_bikes_nearby(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     coordinates = {
