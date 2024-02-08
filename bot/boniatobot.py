@@ -59,10 +59,10 @@ async def get_bikes_nearby(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 async def switch_music(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if os.popen("pactl list short modules | grep module-loopback | wc -l").read()[0]=='1':
-            await update.message.reply_text(f'Apagando musica')
+            await update.message.reply_text(f'Sonido Chromecast onn')
             os.system("pactl unload-module module-loopback")
         else:
-            await update.message.reply_text(f'Encendiendo musica')
+            await update.message.reply_text(f'Sonido Chromecast off')
             os.system("pactl load-module module-loopback")
 
 
