@@ -1,4 +1,5 @@
 import asyncio
+import difflib
 import html
 import json
 import logging
@@ -25,6 +26,8 @@ from telegram.ext import ContextTypes
 
 import bot_constants as C
 
+import emoji
+
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
@@ -38,8 +41,8 @@ def read_csv_as_list(file_path):
 def save_list_as_csv(data, file_path):
     with open(file_path, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter = ',')
-        if data:
-            writer.writerow(data)
+        # if data:
+        writer.writerow(data)
            
 def check_permission(update: object):
     if str(update.effective_chat.id) not in C.ALLOWED_IDS:
@@ -99,11 +102,6 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
 #     else:
 #         await update.message.reply_text(f'No tienes permiso para emitir esa orden!')
         
-# async def splitwise_debts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-#     sObj = Splitwise(C.key, C.consumer_secret, api_key=C.api_key)
-#     grupo = [i for i in sObj.getGroups() if i.id==C.SPLITWISE_GROUP_CASA][0]
-#     await update.message.reply_text('\n'.join(get_debts(grupo)))
-   
 async def proyector_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if check_permission(update):
         if shutil.which('irsend') is None:
@@ -142,9 +140,8 @@ async def add_item(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if len(context.args) < 1:
         await update.message.reply_text(f'Debes decirme algo para comprar')
         return
-    item = context.args[0]
+    item = ' '.join(context.args[0:]).strip()
     if not os.path.exists(C.ITEMS_FILE):
-        # f = open(C.ITEMS_FILE, 'a')
         save_list_as_csv([], C.ITEMS_FILE)
     with open(C.ITEMS_FILE,'r+') as f:
         if os.path.getsize(C.ITEMS_FILE) == 0:
@@ -164,18 +161,20 @@ async def delete_item(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if len(context.args) < 1:
         await update.message.reply_text(f'Debes decirme algo que eliminar!')
         return
-    item = context.args[0]
-    with open(C.ITEMS_FILE,'r+') as f:
-        if os.path.getsize(C.ITEMS_FILE) == 0:
-           data = []
-        else:
-            data = read_csv_as_list(C.ITEMS_FILE)
-            if item not in data:
-                await update.message.reply_text(f'"{item}" no está en la lista!')
-                return
-            data.remove(item)
-            save_list_as_csv(data, C.ITEMS_FILE)
-    await update.message.reply_text(f'"{item}" eliminado ;)')
+    item = ' '.join(context.args[0:]).strip()
+    data = read_csv_as_list(C.ITEMS_FILE)
+    if item not in data:
+        try:
+            closest = difflib.get_close_matches(item, data)[0]
+            data.remove(closest)
+            await update.message.reply_text(f'Has escrito "{item}" regulín pero lo he encontrado! {closest} eliminado ;)')        
+        except:
+            await update.message.reply_text(f'"{item}" no está en la lista!')        
+            return
+    else:
+        data.remove(item)
+        await update.message.reply_text(f'"{item}" eliminado ;)')
+    save_list_as_csv(data, C.ITEMS_FILE)
 
 async def reset_items(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     save_list_as_csv([], C.ITEMS_FILE)
@@ -188,19 +187,42 @@ def reset_file(file: str) -> None:
             f.write(json.dumps(data))
             
 def consult_file_items(file: str) -> None:
-    if os.stat(file).st_size == 0:
-        return 'Lista vacía!'
-    with open(file,'r+') as f:
-            data = read_csv_as_list(C.ITEMS_FILE)
-            if data:
-                return "La lista de la compra actual es:\n" + ", ".join(data)
-            else:
-                return "Lista vacía"
-            
-async def consult_items(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    answer = consult_file_items(C.ITEMS_FILE)
-    await update.message.reply_text(answer)
+    if not os.path.exists(file) or os.stat(file).st_size == 0:
+        return []
+    data = read_csv_as_list(C.ITEMS_FILE)
+    return data
     
+async def list_items(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    items = consult_file_items(C.ITEMS_FILE)
+    if items:
+        message =  "La lista de la compra actual es:\n• " + "\n• ".join(items)
+    else:
+        message = "Lista vacía"
+    await update.message.reply_text(message)
+    
+async def delete_items(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    items = consult_file_items(C.ITEMS_FILE)
+    if not items:
+        message = "Lista vacía"
+        await update.message.reply_text(message)
+        return
+    reply_keyboard = [items + ['cancelar']]
+    await update.message.reply_text(
+        "Elije un item:",
+        reply_markup=ReplyKeyboardMarkup(
+                reply_keyboard, one_time_keyboard=True, input_field_placeholder=""
+            ),
+        )
+    return 1
+
+async def delete_markup_item(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    item = update.message.text
+    data = read_csv_as_list(C.ITEMS_FILE)
+    data.remove(item)
+    await update.message.reply_text(f'"{item}" eliminado ;)')
+    save_list_as_csv(data, C.ITEMS_FILE)
+    return 1
+
 async def get_price():  
     async with aiohttp.ClientSession() as session:
         pvpc_handler = PVPCData(session = session, tariff = "2.0TD")
@@ -249,15 +271,6 @@ async def get_price_graph(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     plt.plot(X_, Y_, 'g')
     plt.savefig(dest_path)
     await update.message.reply_photo(dest_path, reply_markup=ReplyKeyboardRemove())
-    
-def get_debts(grupo):
-    mensajes=[]
-    for debt in grupo.simplified_debts:
-        deudor_name=[i.first_name for i in grupo.members if i.id==debt.fromUser][0]
-        deudado_name=[i.first_name for i in grupo.members if i.id==debt.toUser][0]
-        mensaje=f"{deudor_name} debe {debt.getAmount()} {debt.currency_code} a {deudado_name}"
-        mensajes.append(mensaje)
-    return mensajes
 
 async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     job = context.job
