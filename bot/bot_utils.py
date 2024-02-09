@@ -26,8 +26,6 @@ from telegram.ext import ContextTypes
 
 import bot_constants as C
 
-import emoji
-
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
