@@ -147,13 +147,14 @@ async def add_item(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     items = ' '.join(context.args[0:]).strip().split('-')
     with open(C.ITEMS_FILE, "w") as f:
         for item in items:
-            item = item.strip()
-            if item not in set(data):
-                data.append(item)        
-                save_list_as_csv(data, C.ITEMS_FILE)
-            else:
-                await update.message.reply_text(f'{item} ya estaba en la lista!')   
-        await update.message.reply_text(f'"{item}" añadido ;)')
+            if item:
+                item = item.strip()
+                if item not in set(data):
+                    data.append(item)        
+                    save_list_as_csv(data, C.ITEMS_FILE)
+                else:
+                    await update.message.reply_text(f'{item} ya estaba en la lista!')   
+                await update.message.reply_text(f'"{item}" añadido ;)')
 
 async def delete_item(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if len(context.args) < 1:
