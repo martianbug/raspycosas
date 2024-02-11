@@ -16,8 +16,9 @@ import aiohttp
 import matplotlib.pyplot as plt
 import numpy as np
 import csv
+import requests
+from translate import Translator
 
-import tinytuya
 from aiopvpc import PVPCData
 from scipy.interpolate import interp1d
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
@@ -39,7 +40,6 @@ def read_csv_as_list(file_path):
 def save_list_as_csv(data, file_path):
     with open(file_path, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter = ',')
-        # if data:
         writer.writerow(data)
            
 def check_permission(update: object):
@@ -57,7 +57,6 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     logger.error(msg="Exception while handling an update:", exc_info=context.error)
     # traceback.format_exception returns the usual python message about an exception, but as a
     # list of strings rather than a single string, so we have to join them together.
-
     tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
     tb_string = "".join(tb_list)
     # Build the message with some markup and additional information about what happened.
@@ -76,30 +75,39 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Lo siento, ese comando no lo conozco")
-    
-# async def calentador_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-#     if check_permission(update):
-#         heater = load_device('calentador')
-#         if heater.status().get('Error'):
-#             await update.message.reply_text(f'No es posible conectarse :/')
-#             return
-#         elif heater.status().get('dps'):
-#             await update.message.reply_text(f'Ya está encendido!')
-#             heater.turn_on()
-#         else:
-#            heater.turn_on()
-#            await update.message.reply_text(f'Calentador ON 🔥')
-#     else:
-#         await update.message.reply_text(f'No tienes permiso para emitir esa orden!')
-        
-# async def calentador_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-#     if check_permission(update):
-#         heater = load_device('calentador')
-#         heater.turn_off()
-#         await update.message.reply_text(f'Calentador OFF ❄️')
-#     else:
-#         await update.message.reply_text(f'No tienes permiso para emitir esa orden!')
-        
+
+async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    translator = Translator(from_lang = 'en', to_lang="es", pro = True)
+    complete_url = C.URL_WEATHER.format(mode=C.WEATHER) + "appid=" + C.WEATHER_API_KEY + "&q=" + 'Peña Grande'
+    response = requests.get(complete_url)
+    x = response.json()
+    if x["cod"] != "404":
+        y = x["main"]
+        temp = round(y["temp"] - 273.15, 2)
+        temp_feel = round(y["feels_like"] - 273.15, 2)
+        humidity = y["humidity"]
+        description = x["weather"][0]['description']
+        z_translated = translator.translate(description.capitalize())
+    await update.message.reply_text(f"La temperatura es {temp}°C. Sensación termica: {temp_feel}°C.\nHumedad del {humidity}%. {z_translated}.")
+
+async def weather_forecast(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    translator= Translator(from_lang = 'en', to_lang="es", pro = True)
+    complete_url = C.URL_WEATHER.format(mode=C.FORECAST) + "appid=" + C.WEATHER_API_KEY + "&q=" + 'Peña Grande'
+    response = requests.get(complete_url)
+    x = response.json()
+    msg = ''
+    next_forecasts = x['list']
+    if x["cod"] != "404":
+        for forecast in next_forecasts[:20]:
+            when = datetime.fromtimestamp(forecast['dt'])
+            y = forecast['main']
+            temp = round(y["temp"] - 273.15, 2)
+            humidity = y["humidity"]
+            description = forecast["weather"][0]['description']
+            z_translated = translator.translate(description.capitalize())
+            msg += f"<b>{when}</b> -> T: {temp}°C. H: {humidity}%. {z_translated}\n"
+    await update.message.reply_text(msg, parse_mode=ParseMode.HTML)
+
 async def proyector_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if check_permission(update):
         if shutil.which('irsend') is None:
@@ -121,17 +129,6 @@ async def proyector_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         os.system("irsend SEND_ONCE BENQ_W1070 KEY_POWER")
     else:
         await update.message.reply_text(f'No tienes permiso para emitir esa orden!')
-
-# def load_device(device_name: str) -> tinytuya.OutletDevice:
-#     # with open(C.DEVICES_FILE, 'r') as d:
-#     #     devices = json.load(d)
-#     device_data = [i for i in devices if device_name in i['name'].lower()][0]
-#     device_ID = device_data['id']
-#     device_IP = device_data['ip']
-#     # device_KEY = device_data['key']
-#     device = tinytuya.OutletDevice(device_ID, device_IP, None,
-#                                         version=3.3, dev_type='default')
-#     return device
 
 async def add_item(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     data = []
@@ -204,11 +201,11 @@ async def delete_items(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         message = "Lista vacía"
         await update.message.reply_text(message)
         return
-    reply_keyboard = [items + ['cancelar']]
+    reply_keyboard = [items + ['/cancelar']]
     await update.message.reply_text(
-        "Elije un item:",
+        "Elije un item: ",
         reply_markup=ReplyKeyboardMarkup(
-                reply_keyboard, one_time_keyboard=True, input_field_placeholder=""
+                reply_keyboard, one_time_keyboard = False, input_field_placeholder=""
             ),
         )
     return 1
