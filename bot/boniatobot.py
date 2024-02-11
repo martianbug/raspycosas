@@ -19,7 +19,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user = update.message.from_user
     logger.info("User %s canceled the conversation.", user.first_name)
     await update.message.reply_text(
-        "Adsisouss.", reply_markup=ReplyKeyboardRemove()
+        "Valeee gracias por comprar ❤️", reply_markup=ReplyKeyboardRemove()
     )
     return ConversationHandler.END
 
@@ -69,7 +69,10 @@ async def increase_volume(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 async def decrease_volume(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.reply_text(f'Subiendo volumen')
             os.system("amixer -D pulse sset Master 5%-")            
-            
+
+async def send_message_group(app, msg):
+    await app.bot.sendMessage(chat_id=C.GROUP_CHAT_ID, text=msg)
+
 if __name__ == "__main__":     
     app = ApplicationBuilder().token(my_secrets.TOKEN).build()
     app.add_handler(CommandHandler("holita", hola))
@@ -84,23 +87,21 @@ if __name__ == "__main__":
     # app.add_handler(CommandHandler("proyector_on", proyector_on))
     # app.add_handler(CommandHandler("proyector_off", proyector_off))
     app.add_handler(CommandHandler("precio", price))
-    app.add_handler(MessageHandler(filters.Text(C.BUTTONS_PRICE), message_price_handler))
+   # app.add_handler(MessageHandler(filters.Text(C.BUTTONS_PRICE), message_price_handler))
     app.add_handler(CommandHandler("tiempo", weather))
     app.add_handler(CommandHandler("tiempo_prediccion", weather_forecast))
     # app.add_handler(CommandHandler("antiruido", set_timer))
     # app.add_handler(CommandHandler("borrar_antiruido", unset))
     app.add_handler(CommandHandler("comprar", add_item))
     app.add_handler(CommandHandler("borrar", delete_item))
-    app.add_handler(CommandHandler("borrar_items", delete_items))
+    # app.add_handler(CommandHandler("borrar_items", delete_items))
     app.add_handler(CommandHandler("lista_compra", list_items))
     app.add_handler(CommandHandler("compra_reset", reset_items))
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("borrar_items", delete_items)],
-        allow_reentry=True,
+        allow_reentry = True,
         states={
-            # PHOTO: [MessageHandler(filters.PHOTO, photo), CommandHandler("skip", skip_photo)],
-            # & ~filters.COMMAND
-            1: [MessageHandler(filters.TEXT, delete_markup_item),
+            DEL_ITEM: [MessageHandler(filters.TEXT & ~filters.COMMAND, delete_markup_item),
                 CommandHandler("cancelar", cancel)],
         },
         fallbacks=[CommandHandler("cancelar", cancel)])
@@ -110,5 +111,5 @@ if __name__ == "__main__":
     app.add_handler(unknown_handler)
     
     print('Bontiato Bot running...'.center(70))
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
+    app.run_polling(allowed_updates = Update.ALL_TYPES)
     print('Bontiato Bot ended!'.center(70))

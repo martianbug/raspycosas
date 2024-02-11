@@ -23,7 +23,7 @@ from aiopvpc import PVPCData
 from scipy.interpolate import interp1d
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.constants import ParseMode
-from telegram.ext import ContextTypes
+from telegram.ext import (ContextTypes, ConversationHandler)
 
 import bot_constants as C
 
@@ -31,6 +31,7 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 logger = logging.getLogger(__name__)
+DEL_ITEM = range(1)
 
 def read_csv_as_list(file_path):
     with open(file_path, 'r') as csvfile:
@@ -208,7 +209,7 @@ async def delete_items(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 reply_keyboard, one_time_keyboard = False, input_field_placeholder=""
             ),
         )
-    return 1
+    return DEL_ITEM
 
 async def delete_markup_item(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     item = update.message.text
@@ -216,7 +217,8 @@ async def delete_markup_item(update: Update, context: ContextTypes.DEFAULT_TYPE)
     data.remove(item)
     await update.message.reply_text(f'"{item}" eliminado ;)')
     save_list_as_csv(data, C.ITEMS_FILE)
-    return 1
+    # return ConversationHandler.END
+    return DEL_ITEM
 
 async def get_price():  
     async with aiohttp.ClientSession() as session:
