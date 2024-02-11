@@ -102,9 +102,9 @@ if __name__ == "__main__":
         allow_reentry = True,
         states={
             DEL_ITEM: [MessageHandler(filters.TEXT & ~filters.COMMAND, delete_markup_item),
-                CommandHandler("cancelar", cancel)],
+                CommandHandler("salir", cancel)],
         },
-        fallbacks=[CommandHandler("cancelar", cancel)])
+        fallbacks=[CommandHandler("salir", cancel)])
     app.add_handler(conv_handler)
     app.add_error_handler(error_handler) # error handling
     unknown_handler = MessageHandler(filters.COMMAND, unknown)

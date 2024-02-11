@@ -136,7 +136,6 @@ async def add_item(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if len(context.args) < 1:
         await update.message.reply_text(f'Debes decirme algo para comprar')
         return
-    item = ' '.join(context.args[0:]).strip()
     if not os.path.exists(C.ITEMS_FILE):
         save_list_as_csv([], C.ITEMS_FILE)
     with open(C.ITEMS_FILE,'r+') as f:
@@ -145,13 +144,16 @@ async def add_item(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         else:
             data = read_csv_as_list(C.ITEMS_FILE)
             
+    items = ' '.join(context.args[0:]).strip().split('-')
     with open(C.ITEMS_FILE, "w") as f:
-        if item not in set(data):
-            data.append(item)        
-            save_list_as_csv(data, C.ITEMS_FILE)
-        else:
-            await update.message.reply_text(f'Ese item ya estaba!')   
-    await update.message.reply_text(f'"{item}" añadido ;)')
+        for item in items:
+            item = item.strip()
+            if item not in set(data):
+                data.append(item)        
+                save_list_as_csv(data, C.ITEMS_FILE)
+            else:
+                await update.message.reply_text(f'{item} ya estaba en la lista!')   
+        await update.message.reply_text(f'"{item}" añadido ;)')
 
 async def delete_item(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if len(context.args) < 1:
@@ -202,7 +204,7 @@ async def delete_items(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         message = "Lista vacía"
         await update.message.reply_text(message)
         return
-    reply_keyboard = [items + ['/cancelar']]
+    reply_keyboard = [items + ['/salir']]
     await update.message.reply_text(
         "Elije un item: ",
         reply_markup=ReplyKeyboardMarkup(
