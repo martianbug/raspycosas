@@ -271,32 +271,20 @@ async def get_price_graph(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     plt.savefig(dest_path)
     await update.message.reply_photo(dest_path, reply_markup=ReplyKeyboardRemove())
 
-async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
+async def alarm_rain(context: ContextTypes.DEFAULT_TYPE) -> None:
     job = context.job
-    await context.bot.send_message(job.chat_id, text=f"Atención, recordatorio!! Recuerda callarte la puta boca :)")
+    complete_url = C.URL_WEATHER.format(mode=C.WEATHER) + "appid=" + C.WEATHER_API_KEY + "&q=" + 'Peña Grande'
+    response = requests.get(complete_url)
+    x = response.json()
+    description = x["weather"][0]['description']
+    if 'rain' in description.lower():
+        await context.bot.send_message(job.chat_id, text=f"Llueve!!! 🌧️🌧️")
 
-async def set_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    chat_id = update.effective_message.chat_id
-    try:
-        if len(context.args) < 1:
-            await update.effective_message.reply_text("Dime cuantos minutos quieres de espera.")
-            return
-        due = float(context.args[0]) * 60 * 60 
-        if due < 0:
-            await update.effective_message.reply_text("Primo no se puede viajar al pasado.")
-            return
+async def set_job_rain(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    context.job_queue.run_repeating(alarm_rain, chat_id=C.GROUP_CHAT_ID, interval=300, first=0)      
+    # Store the job in the chat_data for later reference
+    await update.message.reply_text(f'Alarma antilluvia puesta!')
 
-        job_removed = remove_job_if_exists(str(chat_id), context)
-        context.job_queue.run_once(alarm, due, chat_id=chat_id, name=str(chat_id), data=due)
-
-        text = "Recordatorio añadido!"
-        if job_removed:
-            text += " Anterior recordatorio eliminado."
-        await update.effective_message.reply_text(text)
-
-    except (IndexError, ValueError):
-        await update.effective_message.reply_text("Uso: /set <horas>")
-        
 async def unset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Remove the job if the user changed their mind."""
     chat_id = update.message.chat_id

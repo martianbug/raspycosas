@@ -87,14 +87,12 @@ if __name__ == "__main__":
     # app.add_handler(CommandHandler("proyector_on", proyector_on))
     # app.add_handler(CommandHandler("proyector_off", proyector_off))
     app.add_handler(CommandHandler("precio", price))
-   # app.add_handler(MessageHandler(filters.Text(C.BUTTONS_PRICE), message_price_handler))
+    app.add_handler(MessageHandler(filters.Text(C.BUTTONS_PRICE), message_price_handler))
     app.add_handler(CommandHandler("tiempo", weather))
     app.add_handler(CommandHandler("tiempo_prediccion", weather_forecast))
-    # app.add_handler(CommandHandler("antiruido", set_timer))
-    # app.add_handler(CommandHandler("borrar_antiruido", unset))
+    app.add_handler(CommandHandler("alarma_lluvia", set_job_rain))
     app.add_handler(CommandHandler("comprar", add_item))
     app.add_handler(CommandHandler("borrar", delete_item))
-    # app.add_handler(CommandHandler("borrar_items", delete_items))
     app.add_handler(CommandHandler("lista_compra", list_items))
     app.add_handler(CommandHandler("compra_reset", reset_items))
     conv_handler = ConversationHandler(
@@ -109,7 +107,6 @@ if __name__ == "__main__":
     app.add_error_handler(error_handler) # error handling
     unknown_handler = MessageHandler(filters.COMMAND, unknown)
     app.add_handler(unknown_handler)
-    
     print('Bontiato Bot running...'.center(70))
     app.run_polling(allowed_updates = Update.ALL_TYPES)
     print('Bontiato Bot ended!'.center(70))

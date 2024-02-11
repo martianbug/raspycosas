@@ -5,5 +5,5 @@ splitwise
 aiopvpc
 seaborn
 translate
-tinytuya
+python-telegram-bot[job-queue]
 scipy
