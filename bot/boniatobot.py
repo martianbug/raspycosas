@@ -91,6 +91,8 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("tiempo", weather))
     app.add_handler(CommandHandler("tiempo_prediccion", weather_forecast))
     app.add_handler(CommandHandler("alarma_lluvia", set_job_rain))
+    app.add_handler(CommandHandler("alarma_lluvia_off", unset))
+    
     app.add_handler(CommandHandler("comprar", add_item))
     app.add_handler(CommandHandler("borrar", delete_item))
     app.add_handler(CommandHandler("lista_compra", list_items))

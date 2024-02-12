@@ -13,6 +13,7 @@ from datetime import datetime
 from heapq import nlargest, nsmallest
 
 import aiohttp
+from joblib import Parallel, delayed
 import matplotlib.pyplot as plt
 import numpy as np
 import csv
@@ -99,15 +100,19 @@ async def weather_forecast(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     msg = ''
     next_forecasts = x['list']
     if x["cod"] != "404":
-        for forecast in next_forecasts[:20]:
-            when = datetime.fromtimestamp(forecast['dt'])
-            y = forecast['main']
-            temp = round(y["temp"] - 273.15, 2)
-            humidity = y["humidity"]
-            description = forecast["weather"][0]['description']
-            z_translated = translator.translate(description.capitalize())
-            msg += f"<b>{when}</b> -> T: {temp}°C. H: {humidity}%. {z_translated}\n"
-    await update.message.reply_text(msg, parse_mode=ParseMode.HTML)
+        msgs = Parallel(n_jobs=3)(delayed(get_forecast_info)(translator, msg, forecast) for forecast in next_forecasts[:20])
+    # for forecast in next_forecasts[:20]:
+    #         get_forecast_info(translator, msg, forecast)
+    await update.message.reply_text(''.join(msgs), parse_mode=ParseMode.HTML)
+
+def get_forecast_info(translator, msg, forecast):
+    when = datetime.fromtimestamp(forecast['dt'])
+    y = forecast['main']
+    temp = round(y["temp"] - 273.15, 2)
+    humidity = y["humidity"]
+    description = forecast["weather"][0]['description']
+    z_translated = translator.translate(description.capitalize())
+    return f"<b>{when}</b> -> T: {temp}°C. H: {humidity}%. {z_translated}\n"
 
 async def proyector_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if check_permission(update):
@@ -143,18 +148,20 @@ async def add_item(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
            data = []
         else:
             data = read_csv_as_list(C.ITEMS_FILE)
-            
     items = ' '.join(context.args[0:]).strip().split('-')
     with open(C.ITEMS_FILE, "w") as f:
         for item in items:
-            if item:
-                item = item.strip()
-                if item not in set(data):
-                    data.append(item)        
-                    save_list_as_csv(data, C.ITEMS_FILE)
-                else:
-                    await update.message.reply_text(f'{item} ya estaba en la lista!')   
-                await update.message.reply_text(f'"{item}" añadido ;)')
+            await add_item_to_file(update, data, item)
+
+async def add_item_to_file(update, data, item):
+    if item:
+        item = item.strip()
+        if item not in set(data):
+            data.append(item)        
+            save_list_as_csv(data, C.ITEMS_FILE)
+        else:
+            await update.message.reply_text(f'{item} ya estaba en la lista!')   
+        await update.message.reply_text(f'"{item}" añadido ;)')
 
 async def delete_item(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if len(context.args) < 1:
@@ -278,11 +285,11 @@ async def alarm_rain(context: ContextTypes.DEFAULT_TYPE) -> None:
     response = requests.get(complete_url)
     x = response.json()
     description = x["weather"][0]['description']
-    if 'rain' in description.lower():
+    if 'cloud' in description.lower():
         await context.bot.send_message(job.chat_id, text=f"Llueve!!! 🌧️🌧️")
 
 async def set_job_rain(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    context.job_queue.run_repeating(alarm_rain, chat_id=C.GROUP_CHAT_ID, interval=300, first=0)      
+    context.job_queue.run_repeating(alarm_rain, chat_id=C.GROUP_CHAT_ID, interval=30, first=0)      
     # Store the job in the chat_data for later reference
     await update.message.reply_text(f'Alarma antilluvia puesta!')
 
@@ -290,7 +297,7 @@ async def unset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Remove the job if the user changed their mind."""
     chat_id = update.message.chat_id
     job_removed = remove_job_if_exists(str(chat_id), context)
-    text = "Recordatorio cancelado!" if job_removed else "No tienes recordatorios activos primo"
+    text = "Alarma ancelada!" if job_removed else "No hay ninguna alarma ahora"
     await update.message.reply_text(text)
 
 def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
