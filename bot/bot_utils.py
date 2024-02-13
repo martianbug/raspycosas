@@ -25,6 +25,7 @@ from scipy.interpolate import interp1d
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.constants import ParseMode
 from telegram.ext import (ContextTypes, ConversationHandler)
+from bicimad_utils import login_and_get_vals, print_results, print_results_casa
 
 import bot_constants as C
 
@@ -97,15 +98,14 @@ async def weather_forecast(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     complete_url = C.URL_WEATHER.format(mode=C.FORECAST) + "appid=" + C.WEATHER_API_KEY + "&q=" + 'Peña Grande'
     response = requests.get(complete_url)
     x = response.json()
-    msg = ''
     next_forecasts = x['list']
     if x["cod"] != "404":
-        msgs = Parallel(n_jobs=3)(delayed(get_forecast_info)(translator, msg, forecast) for forecast in next_forecasts[:20])
+        msgs = Parallel(n_jobs=3)(delayed(get_forecast_info)(translator, forecast) for forecast in next_forecasts[:20])
     # for forecast in next_forecasts[:20]:
-    #         get_forecast_info(translator, msg, forecast)
+    #         get_forecast_info(translator,forecast)
     await update.message.reply_text(''.join(msgs), parse_mode=ParseMode.HTML)
 
-def get_forecast_info(translator, msg, forecast):
+def get_forecast_info(translator, forecast):
     when = datetime.fromtimestamp(forecast['dt'])
     y = forecast['main']
     temp = round(y["temp"] - 273.15, 2)
@@ -285,15 +285,15 @@ async def alarm_rain(context: ContextTypes.DEFAULT_TYPE) -> None:
     response = requests.get(complete_url)
     x = response.json()
     description = x["weather"][0]['description']
-    if 'cloud' in description.lower():
-        await context.bot.send_message(job.chat_id, text=f"Llueve!!! 🌧️🌧️")
-
+    if 'rain' in description.lower():
+        await context.bot.send_message(job.chat_id, text=f"Llueve!!! 🌧️🌧️. Lo recordaré cada hora. Apaga con /alarma_lluvia_off")
+        context.job.job.trigger.interval = 3000
+        
 async def set_job_rain(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    context.job_queue.run_repeating(alarm_rain, chat_id=C.GROUP_CHAT_ID, interval=30, first=0)      
-    # Store the job in the chat_data for later reference
+    context.job_queue.run_repeating(alarm_rain, chat_id=C.GROUP_CHAT_ID, interval=300, first=0)      
     await update.message.reply_text(f'Alarma antilluvia puesta!')
 
-async def unset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def unset_jobs(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Remove the job if the user changed their mind."""
     chat_id = update.message.chat_id
     job_removed = remove_job_if_exists(str(chat_id), context)
@@ -307,3 +307,17 @@ def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
     for job in current_jobs:
         job.schedule_removal()
     return True
+
+async def get_casa_bikes(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    message = print_results_casa(login_and_get_vals(coordinates=C.coordinates))
+    await context.bot.send_message(update.effective_chat.id, message, parse_mode=ParseMode.HTML)
+    
+async def get_bikes_nearby(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    coordinates = {
+        'longitude':  update.message.location.longitude,
+        'latitude':  update.message.location.latitude,
+    }
+    message = print_results(login_and_get_vals(coordinates=coordinates))    
+    if message == '':
+        message = 'No se han encontrado estaciones cerca! Prueba de nuevo :)' 
+    await context.bot.send_message(update.effective_chat.id, message, parse_mode=ParseMode.HTML)
