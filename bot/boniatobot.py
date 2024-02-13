@@ -54,21 +54,21 @@ async def switch_sound(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             await update.message.reply_text(f'Sonido Chromecast off')
             os.system("pactl load-module module-loopback")
 
-async def max_volume(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-            await update.message.reply_text(f'Volumen al 100%!!! Cuidaito los vecinos y los oidos ;)')
-            os.system("amixer -D pulse sset Master 100%")
-
-async def min_volume(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-            await update.message.reply_text(f'Volumen al 0%! shhh')
-            os.system("amixer -D pulse sset Master 0%")          
-
+async def set_volumen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if len(context.args) < 1 or context.args[0]:
+        await update.message.reply_text(f'Debes decirme un número de volumen')
+        return
+    v = context.args[0]
+    await update.message.reply_text(f'Volumen al {v}%')
+    os.system(f"amixer -D pulse sset Master {v}%")
+            
 async def increase_volume(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.reply_text(f'Subiendo volumen')
-            os.system("amixer -D pulse sset Master 5%+")    
+            os.system("amixer -D pulse sset Master 10%+")    
 
 async def decrease_volume(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.reply_text(f'Subiendo volumen')
-            os.system("amixer -D pulse sset Master 5%-")            
+            os.system("amixer -D pulse sset Master 10%-")            
 
 async def send_message_group(app, msg):
     await app.bot.sendMessage(chat_id=C.GROUP_CHAT_ID, text=msg)
@@ -79,8 +79,7 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("bicimadcasa", get_casa_bikes))
     app.add_handler(MessageHandler(filters.LOCATION, get_bikes_nearby))
     app.add_handler(CommandHandler("sound", switch_sound))
-    app.add_handler(CommandHandler("volume_100", max_volume))
-    app.add_handler(CommandHandler("volumen_0", min_volume))
+    app.add_handler(CommandHandler("volume", set_volumen))
     app.add_handler(CommandHandler("volume_up", increase_volume))
     app.add_handler(CommandHandler("volume_down", decrease_volume))
     app.add_handler(CommandHandler("chill_andrea", chill))
