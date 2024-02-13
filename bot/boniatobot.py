@@ -44,7 +44,7 @@ async def switch_sound(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             os.system("pactl load-module module-loopback")
 
 async def set_volumen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if len(context.args) < 1 or len(context.args[0])>1:
+    if len(context.args) < 1 or len(context.args[0])>3:
         await update.message.reply_text(f'Debes decirme un número de volumen')
         return
     v = int(context.args[0])
