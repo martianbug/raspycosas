@@ -34,7 +34,7 @@ URL_WEATHER = "http://api.openweathermap.org/data/2.5/{mode}?"
 SERVER_URL = "http://192.168.1.123"
 
 # Telegram constants
-GROUP_CHAT_ID = '-1001763995292'
+GROUP_CHAT_ID = '-857036022'
 DEVELOPER_CHAT_ID = '63210791'
 ALLOWED_IDS = [DEVELOPER_CHAT_ID, GROUP_CHAT_ID]
 BUTTONS_PRICE = ['Precio ahora', 'Gráfica del día']

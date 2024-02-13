@@ -14,3 +14,4 @@ ltex.dictionary.en-US.txt
 *.csv
 */*my_secrets.py
 bot/data/*.csv
+data/items.csv

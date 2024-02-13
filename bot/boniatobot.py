@@ -1,8 +1,7 @@
 
-from urllib.request import urlopen
-from bicimad_utils import login_and_get_vals, print_results, print_results_casa
-import requests
 import my_secrets
+
+import signal
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import (ApplicationBuilder, CallbackContext, CommandHandler,
                           ContextTypes, ConversationHandler, MessageHandler,
@@ -14,6 +13,10 @@ from bot_utils import *
 async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Que passsa {update.effective_user.first_name}')
 
+async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Ta prontooo :)")
+    os.kill(os.getpid(), signal.SIGINT)
+    
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Cancels and ends the conversation."""
     user = update.message.from_user
@@ -32,20 +35,6 @@ async def price(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             ),
         )
     
-async def get_casa_bikes(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    message = print_results_casa(login_and_get_vals(coordinates=C.coordinates))
-    await context.bot.send_message(update.effective_chat.id, message, parse_mode=ParseMode.HTML)
-    
-async def get_bikes_nearby(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    coordinates = {
-        'longitude':  update.message.location.longitude,
-        'latitude':  update.message.location.latitude,
-    }
-    message = print_results(login_and_get_vals(coordinates=coordinates))    
-    if message == '':
-        message = 'No se han encontrado estaciones cerca! Prueba de nuevo :)' 
-    await context.bot.send_message(update.effective_chat.id, message, parse_mode=ParseMode.HTML)
-
 async def switch_sound(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if os.popen("pactl list short modules | grep module-loopback | wc -l").read()[0]=='1':
             await update.message.reply_text(f'Sonido Chromecast onn')
@@ -76,6 +65,7 @@ async def send_message_group(app, msg):
 if __name__ == "__main__":     
     app = ApplicationBuilder().token(my_secrets.TOKEN).build()
     app.add_handler(CommandHandler("holita", hola))
+    app.add_handler(CommandHandler('stop', stop))
     app.add_handler(CommandHandler("bicimadcasa", get_casa_bikes))
     app.add_handler(MessageHandler(filters.LOCATION, get_bikes_nearby))
     app.add_handler(CommandHandler("sound", switch_sound))
@@ -90,8 +80,7 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("tiempo", weather))
     app.add_handler(CommandHandler("tiempo_prediccion", weather_forecast))
     app.add_handler(CommandHandler("alarma_lluvia", set_job_rain))
-    app.add_handler(CommandHandler("alarma_lluvia_off", unset))
-    
+    app.add_handler(CommandHandler("alarma_lluvia_off", unset_jobs))
     app.add_handler(CommandHandler("comprar", add_item))
     app.add_handler(CommandHandler("borrar", delete_item))
     app.add_handler(CommandHandler("lista_compra", list_items))
