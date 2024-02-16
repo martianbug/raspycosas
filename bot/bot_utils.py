@@ -40,10 +40,10 @@ DEL_ITEM = range(1)
 
 
 def text_to_speech(text):
-    speech = gTTS(text, lang='it', tld='com')
+    speech = gTTS(text, lang='it')
     speech_file = 'speech.mp3'
     speech.save(speech_file)
-    os.system('ffplay ' + speech_file + '-autoexit')
+    return speech_file
     
 def read_csv_as_list(file_path):
     with open(file_path, 'r') as csvfile:

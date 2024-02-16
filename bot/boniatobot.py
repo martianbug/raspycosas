@@ -56,8 +56,9 @@ async def speech(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text(f'Pero qué digo???')
         return
     msg = ' '.join(context.args)
-    text_to_speech(msg)
+    speech_file = text_to_speech(msg)
     await update.message.reply_text(f'Hablandooo')
+    os.system('mpg123 ' + speech_file)
     
 async def increase_volume(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.reply_text(f'Subiendo volumen')
