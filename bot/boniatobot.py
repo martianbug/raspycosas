@@ -52,12 +52,13 @@ async def set_volumen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     os.system(f"amixer -D pulse sset Master {v}%")
      
 async def speech(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
-    if len(context.args) < 1 or len(context.args[0])>3:
-        await update.message.reply_text(f'Debes decirme un número de volumen')
+    if len(context.args)<1:
+        await update.message.reply_text(f'Pero qué digo???')
         return
     msg = ' '.join(context.args)
     text_to_speech(msg)
-            
+    await update.message.reply_text(f'Hablandooo')
+    
 async def increase_volume(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.reply_text(f'Subiendo volumen')
             os.system("amixer -D pulse sset Master 10%+")    
