@@ -15,3 +15,4 @@ ltex.dictionary.en-US.txt
 */*my_secrets.py
 bot/data/*.csv
 data/items.csv
+*.mp3
