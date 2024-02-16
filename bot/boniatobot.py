@@ -50,6 +50,13 @@ async def set_volumen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     v = int(context.args[0])
     await update.message.reply_text(f'Volumen al {v}%')
     os.system(f"amixer -D pulse sset Master {v}%")
+     
+async def speech(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
+    if len(context.args) < 1 or len(context.args[0])>3:
+        await update.message.reply_text(f'Debes decirme un número de volumen')
+        return
+    msg = ' '.join(context.args)
+    text_to_speech(msg)
             
 async def increase_volume(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.reply_text(f'Subiendo volumen')
@@ -72,6 +79,7 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("volume", set_volumen))
     app.add_handler(CommandHandler("volume_up", increase_volume))
     app.add_handler(CommandHandler("volume_down", decrease_volume))
+    app.add_handler(CommandHandler("di", speech))
     app.add_handler(CommandHandler("chill_andrea", chill))
     # app.add_handler(CommandHandler("proyector_on", proyector_on))
     # app.add_handler(CommandHandler("proyector_off", proyector_off))

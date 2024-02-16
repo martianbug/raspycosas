@@ -29,12 +29,27 @@ from bicimad_utils import login_and_get_vals, print_results, print_results_casa
 
 import bot_constants as C
 
+from gtts import gTTS
+import os
+
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 DEL_ITEM = range(1)
 
+
+def text_to_speech(text):
+    # Initialize gTTS with the text to convert
+    speech = gTTS(text, lang='es')
+
+    # Save the audio file to a temporary file
+    speech_file = 'speech.mp3'
+    speech.save(speech_file)
+
+    # Play the audio file
+    os.system('afplay ' + speech_file)
+    
 def read_csv_as_list(file_path):
     with open(file_path, 'r') as csvfile:
         data = list(csv.reader(csvfile))[0]
