@@ -40,7 +40,7 @@ DEL_ITEM = range(1)
 
 
 def text_to_speech(text):
-    speech = gTTS(text, lang='es', tld='com')
+    speech = gTTS(text, lang='it')
     speech_file = 'speech.mp3'
     speech.save(speech_file)
     return speech_file
