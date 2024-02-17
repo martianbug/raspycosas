@@ -67,6 +67,13 @@ async def spotify(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # msg = ' '.join(context.args)
     os.system('spotify.sh')
     
+async def spotify_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
+    # if len(context.args)<1:
+    #     await update.message.reply_text(f'Pero qué digo???')
+    #     return
+    # msg = ' '.join(context.args)
+    os.system('spotify_stop.sh')
+    
 async def increase_volume(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.reply_text(f'Subiendo volumen')
             os.system("amixer -D pulse sset Master 10%+")    
@@ -90,6 +97,8 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("volume_down", decrease_volume))
     app.add_handler(CommandHandler("di", speech))
     app.add_handler(CommandHandler("spotify", spotify))
+    app.add_handler(CommandHandler("spotify_stop", spotify_stop))
+    
     app.add_handler(CommandHandler("chill_andrea", chill))
     # app.add_handler(CommandHandler("proyector_on", proyector_on))
     # app.add_handler(CommandHandler("proyector_off", proyector_off))
