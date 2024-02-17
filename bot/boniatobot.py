@@ -13,9 +13,14 @@ from bot_utils import *
 async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Que passsa {update.effective_user.first_name}')
 
-async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def reboot(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Ta prontooo :)")
     os.kill(os.getpid(), signal.SIGINT)
+    
+
+async def reboot(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Reset!!")
+    os.system("sudo reboot")
     
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Cancels and ends the conversation."""
@@ -61,18 +66,13 @@ async def speech(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     os.system('mpg123 ' + speech_file)
 
 async def spotify(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
-    # if len(context.args)<1:
-    #     await update.message.reply_text(f'Pero qué digo???')
-    #     return
-    # msg = ' '.join(context.args)
-    os.system('sh ./create_spotify.sh')
+    os.system('sh ./attach_spotify.sh')
+    await update.message.reply_text(f'Music ON')
     
 async def spotify_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
-    # if len(context.args)<1:
-    #     await update.message.reply_text(f'Pero qué digo???')
-    #     return
-    # msg = ' '.join(context.args)
-    os.system(' ./potify_stop.sh')
+    os.system(' ./spotify_stop.sh')
+    await update.message.reply_text(f'Music OFF')
+    
     
 async def increase_volume(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.reply_text(f'Subiendo volumen')
@@ -89,6 +89,8 @@ if __name__ == "__main__":
     app = ApplicationBuilder().token(my_secrets.TOKEN).build()
     app.add_handler(CommandHandler("holita", hola))
     app.add_handler(CommandHandler('stop', stop))
+    app.add_handler(CommandHandler('reboot', reboot))
+    
     app.add_handler(CommandHandler("bicimadcasa", get_casa_bikes))
     app.add_handler(MessageHandler(filters.LOCATION, get_bikes_nearby))
     app.add_handler(CommandHandler("sound", switch_sound))
