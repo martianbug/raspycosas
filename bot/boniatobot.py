@@ -65,14 +65,14 @@ async def spotify(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     #     await update.message.reply_text(f'Pero qué digo???')
     #     return
     # msg = ' '.join(context.args)
-    os.system('bot/create_spotify.sh')
+    os.system('sh ./create_spotify.sh')
     
 async def spotify_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
     # if len(context.args)<1:
     #     await update.message.reply_text(f'Pero qué digo???')
     #     return
     # msg = ' '.join(context.args)
-    os.system('sbot/potify_stop.sh')
+    os.system(' ./potify_stop.sh')
     
 async def increase_volume(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.reply_text(f'Subiendo volumen')
