@@ -13,10 +13,9 @@ from bot_utils import *
 async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Que passsa {update.effective_user.first_name}')
 
-async def reboot(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Ta prontooo :)")
     os.kill(os.getpid(), signal.SIGINT)
-    
 
 async def reboot(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Reset!!")
