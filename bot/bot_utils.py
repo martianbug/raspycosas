@@ -38,6 +38,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 DEL_ITEM = range(1)
 
+translator_italian = Translator(from_lang = 'es', to_lang="it", pro = True)
+
 
 def text_to_speech(text):
     speech = gTTS(text, lang='it')
@@ -89,6 +91,23 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Lo siento, ese comando no lo conozco")
 
+async def speech(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
+    if len(context.args)<1:
+        await update.message.reply_text(f'Pero qué digo???')
+        return
+    msg = ' '.join(context.args)
+    speech_file = text_to_speech(msg)
+    os.system('mpg123 ' + speech_file)
+    
+async def speech_italian(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
+    if len(context.args)<1:
+        await update.message.reply_text(f'Pero qué digo???')
+        return
+    msg = ' '.join(context.args)
+    msg_translated = translator_italian.translate(msg)
+    speech_file = text_to_speech(msg_translated)
+    os.system('mpg123 ' + speech_file)
+    
 async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     translator = Translator(from_lang = 'en', to_lang="es", pro = True)
     complete_url = C.URL_WEATHER.format(mode=C.WEATHER) + "appid=" + C.WEATHER_API_KEY + "&q=" + 'Peña Grande'

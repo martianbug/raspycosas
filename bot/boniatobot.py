@@ -55,15 +55,6 @@ async def set_volumen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     v = int(context.args[0])
     await update.message.reply_text(f'Volumen al {v}%')
     os.system(f"amixer -D pulse sset Master {v}%")
-     
-async def speech(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
-    if len(context.args)<1:
-        await update.message.reply_text(f'Pero qué digo???')
-        return
-    msg = ' '.join(context.args)
-    speech_file = text_to_speech(msg)
-    # await update.message.reply_text(f'Hablandooo')
-    os.system('mpg123 ' + speech_file)
 
 async def spotify(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
     os.system('sh ./attach_spotify.sh')
@@ -98,6 +89,8 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("volume_up", increase_volume))
     app.add_handler(CommandHandler("volume_down", decrease_volume))
     app.add_handler(CommandHandler("di", speech))
+    app.add_handler(CommandHandler("di_it", speech_italian))
+    
     app.add_handler(CommandHandler("spotify", spotify))
     app.add_handler(CommandHandler("spotify_stop", spotify_stop))
     
