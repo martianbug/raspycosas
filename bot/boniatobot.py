@@ -9,6 +9,7 @@ from telegram.ext import (ApplicationBuilder, CallbackContext, CommandHandler,
 import bot_constants as C
 
 from bot_utils import *
+from requests import post
 
 async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Que passsa {update.effective_user.first_name}')
@@ -41,10 +42,10 @@ async def price(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     
 async def switch_sound(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if os.popen("pactl list short modules | grep module-loopback | wc -l").read()[0]=='1':
-            await update.message.reply_text(f'Sonido Chromecast onn')
+            await update.message.reply_text(f'Sonido Chromecast off')
             os.system("pactl unload-module module-loopback")
         else:
-            await update.message.reply_text(f'Sonido Chromecast off')
+            await update.message.reply_text(f'Sonido Chromecast onnn')
             os.system("pactl load-module module-loopback")
 
 async def set_volumen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -55,14 +56,21 @@ async def set_volumen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     await update.message.reply_text(f'Volumen al {v}%')
     os.system(f"amixer -D pulse sset Master {v}%")
 
-async def spotify(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
-    os.system('sh ./attach_spotify.sh')
-    await update.message.reply_text(f'Music ON')
+# async def spotify(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
+#     os.system('sh ./attach_spotify.sh')
+#     await update.message.reply_text(f'Music ON')
     
-async def spotify_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
-    os.system(' ./spotify_stop.sh')
-    await update.message.reply_text(f'Music OFF')
+# async def spotify_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
+#     os.system(' ./spotify_stop.sh')
+#     await update.message.reply_text(f'Music OFF')
     
+async def cine(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(f'Romantic')
+    url = "http://192.168.1.20:8123/api/events/"
+    headers = {"Authorization": "BEARER eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJiZjNkN2Q3MzEzNmY0ODBmOGFlMTRmYWI1NDRhNDhhZiIsImlhdCI6MTcwODYyOTA2NCwiZXhwIjoyMDIzOTg5MDY0fQ.xQgZpDSTW7GsQwktdcUCLCIoYwDhW3Nz_we-LbruxZM"}
+    data = {"entity_id": "scene.cine"}
+    response = post(url, headers=headers, json=data)
+    print(response.text)
     
 async def increase_volume(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.reply_text(f'Subiendo volumen')
@@ -80,6 +88,8 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("holita", hola))
     app.add_handler(CommandHandler('stop', stop))
     app.add_handler(CommandHandler('reboot', reboot))
+    app.add_handler(CommandHandler('romantic', cine))
+    
     
     app.add_handler(CommandHandler("bicimadcasa", get_casa_bikes))
     app.add_handler(MessageHandler(filters.LOCATION, get_bikes_nearby))
@@ -90,8 +100,8 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("di", speech))
     app.add_handler(CommandHandler("di_it", speech_italian))
     
-    app.add_handler(CommandHandler("spotify", spotify))
-    app.add_handler(CommandHandler("spotify_stop", spotify_stop))
+    # app.add_handler(CommandHandler("spotify", spotify))
+    # app.add_handler(CommandHandler("spotify_stop", spotify_stop))
     
     app.add_handler(CommandHandler("chill_andrea", chill))
     # app.add_handler(CommandHandler("proyector_on", proyector_on))
