@@ -88,7 +88,7 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler('reboot', reboot))
     app.add_handler(CommandHandler('cine', cine_on))
     app.add_handler(CommandHandler('luz', full_light_on))
-    app.add_handler(CommandHandler('luz_mesa', full_light_on))
+    app.add_handler(CommandHandler('luz_mesa', mesa_on))
     app.add_handler(CommandHandler('leds_studio', leds_studio))
     
     app.add_handler(CommandHandler('romantic', romantic_on))
