@@ -326,7 +326,7 @@ async def get_price_now(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         text+=' Aprovecha ahora para cosas tochas y ahorrar 🤑'
     else:
          text+=' Esto es normalito 🥹'
-    await update.message.reply_text(text, reply_markup=ReplyKeyboardRemove()) 
+    await update.message.reply_text(text, reply_markup=ReplyKeyboardRemove())
     
 async def message_price_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if C.BUTTONS_PRICE[0] == update.message.text:

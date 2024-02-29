@@ -33,6 +33,7 @@ async def cancel_delete_items(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Cancels and ends the conversation."""
+    await update.message.reply_text(' ', reply_markup=ReplyKeyboardRemove()) 
     user = update.message.from_user
     logger.info("User %s canceled the conversation.", user.first_name)
     return ConversationHandler.END
