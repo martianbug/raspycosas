@@ -2,7 +2,7 @@
 import my_secrets
 
 import signal
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
+from telegram import  ReplyKeyboardRemove, Update
 from telegram.ext import (ApplicationBuilder, CallbackContext, CommandHandler,
                           ContextTypes, ConversationHandler, MessageHandler,
                           filters)
@@ -33,51 +33,10 @@ async def cancel_delete_items(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Cancels and ends the conversation."""
-    await update.message.reply_text(' ', reply_markup=ReplyKeyboardRemove()) 
+    await update.message.reply_text(';)', reply_markup=ReplyKeyboardRemove()) 
     user = update.message.from_user
     logger.info("User %s canceled the conversation.", user.first_name)
     return ConversationHandler.END
-
-async def price(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    reply_keyboard = [[C.BUTTONS_PRICE[0], C.BUTTONS_PRICE[1]]]
-    await update.message.reply_text(
-        "Elije una opción:",
-        reply_markup=ReplyKeyboardMarkup(
-                reply_keyboard, one_time_keyboard=True, input_field_placeholder=""
-            ),
-        )
-    
-async def switch_sound(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        if os.popen("pactl list short modules | grep module-loopback | wc -l").read()[0]>='1':
-            os.system("pactl unload-module module-loopback")
-            await update.message.reply_text(f'Sonido Chromecast offf')
-        else:
-            os.system("pactl load-module module-loopback")
-            await update.message.reply_text(f'Sonido Chromecast onnn')
-
-async def set_volumen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if len(context.args) < 1 or len(context.args[0])>3:
-        await update.message.reply_text(f'Debes decirme un número de volumen')
-        return
-    v = int(context.args[0])
-    await update.message.reply_text(f'Volumen al {v}%')
-    os.system(f"amixer -D pulse sset Master {v}%")
-
-# async def spotify(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
-#     os.system('sh ./attach_spotify.sh')
-#     await update.message.reply_text(f'Music ON')
-    
-# async def spotify_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
-#     os.system(' ./spotify_stop.sh')
-#     await update.message.reply_text(f'Music OFF')
-    
-async def increase_volume(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-            await update.message.reply_text(f'Subiendo volumen')
-            os.system("amixer -D pulse sset Master 10%+")    
-
-async def decrease_volume(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-            await update.message.reply_text(f'Subiendo volumen')
-            os.system("amixer -D pulse sset Master 10%-")            
 
 async def send_message_group(app, msg):
     await app.bot.sendMessage(chat_id=C.GROUP_CHAT_ID, text=msg)
@@ -90,8 +49,8 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler('cine', cine_on))
     app.add_handler(CommandHandler('luz', full_light_on))
     app.add_handler(CommandHandler('luz_mesa', mesa_on))
+    app.add_handler(CommandHandler('cozy', cozy_on))
     app.add_handler(CommandHandler('leds_studio', leds_studio))
-    
     app.add_handler(CommandHandler('romantic', romantic_on))
     controller_handler = ConversationHandler(
         entry_points=[CommandHandler("mando", controller)],

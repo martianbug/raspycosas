@@ -86,6 +86,10 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Lo siento, ese comando no lo conozco")
+    
+async def sad(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
+    os.system('mpg123 ' + 'data/sounds/sad.mp3')
+    
 
 async def speech(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
     if len(context.args)<1:
@@ -96,10 +100,6 @@ async def speech(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     os.system('mpg123 ' + speech_file)
     os.system('rm '+ speech_file)
     
-
-async def sad(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
-    os.system('mpg123 ' + 'data/sounds/sad.mp3')
-    
 async def speech_italian(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
     if len(context.args)<1:
         await update.message.reply_text(f'Pero qué digo???')
@@ -109,8 +109,50 @@ async def speech_italian(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     speech_file = text_to_speech(msg_translated)
     os.system('mpg123 ' + speech_file)
     os.system('rm '+ speech_file)
+
+
+async def price(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    reply_keyboard = [[C.BUTTONS_PRICE[0], C.BUTTONS_PRICE[1]]]
+    await update.message.reply_text(
+        "Elije una opción:",
+        reply_markup=ReplyKeyboardMarkup(
+                reply_keyboard, one_time_keyboard=True, input_field_placeholder=""
+            ),
+        )
     
+async def switch_sound(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        if os.popen("pactl list short modules | grep module-loopback | wc -l").read()[0]>='1':
+            os.system("pactl unload-module module-loopback")
+            await update.message.reply_text(f'Sonido Chromecast offf')
+        else:
+            os.system("pactl load-module module-loopback")
+            await update.message.reply_text(f'Sonido Chromecast onnn')
+
+async def set_volumen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if len(context.args) < 1 or len(context.args[0])>3:
+        await update.message.reply_text(f'Debes decirme un número de volumen')
+        return
+    v = int(context.args[0])
+    await update.message.reply_text(f'Volumen al {v}%')
+    os.system(f"amixer -D pulse sset Master {v}%")
+
+# async def spotify(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
+#     os.system('sh ./attach_spotify.sh')
+#     await update.message.reply_text(f'Music ON')
     
+# async def spotify_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
+#     os.system(' ./spotify_stop.sh')
+#     await update.message.reply_text(f'Music OFF')
+    
+async def increase_volume(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+            await update.message.reply_text(f'Subiendo volumen')
+            os.system("amixer -D pulse sset Master 10%+")    
+
+async def decrease_volume(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+            await update.message.reply_text(f'Subiendo volumen')
+            os.system("amixer -D pulse sset Master 10%-")            
+
+
 async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     translator = Translator(from_lang = 'en', to_lang="es", pro = True)
     complete_url = C.URL_WEATHER.format(mode=C.WEATHER) + "appid=" + C.WEATHER_API_KEY + "&q=" + 'Peña Grande'
@@ -258,7 +300,14 @@ async def mesa_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     url = my_secrets.HOMEASSISTANT_URL + 'scene/turn_on'
     data = {"entity_id": 'scene.luz_mesa'}
     response = post(url, headers=my_secrets.HOMEASSISTANT_HEADERS, json=data)
-    print(response.text)  
+    print(response.text)
+
+async def cozy_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(f'Trrrranqui tiiio')
+    url = my_secrets.HOMEASSISTANT_URL + 'scene/turn_on'
+    data = {"entity_id": 'scene.cozy'}
+    response = post(url, headers=my_secrets.HOMEASSISTANT_HEADERS, json=data)
+    print(response.text) 
     
 async def leds_studio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     url = my_secrets.HOMEASSISTANT_URL + 'light/toggle'
