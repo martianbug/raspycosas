@@ -94,6 +94,8 @@ async def speech(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     msg = ' '.join(context.args)
     speech_file = text_to_speech(msg)
     os.system('mpg123 ' + speech_file)
+    os.system('rm '+ speech_file)
+    
 
 async def sad(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
     os.system('mpg123 ' + 'data/sounds/sad.mp3')
@@ -106,6 +108,8 @@ async def speech_italian(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     msg_translated = translator_italian.translate(msg)
     speech_file = text_to_speech(msg_translated)
     os.system('mpg123 ' + speech_file)
+    os.system('rm '+ speech_file)
+    
     
 async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     translator = Translator(from_lang = 'en', to_lang="es", pro = True)
