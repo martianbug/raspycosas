@@ -48,12 +48,12 @@ async def price(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         )
     
 async def switch_sound(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        if os.popen("pactl list short modules | grep module-loopback | wc -l").read()[0]=='1':
-            await update.message.reply_text(f'Sonido Chromecast onnn')
-            os.system("pactl load-module module-loopback")
-        else:
-            await update.message.reply_text(f'Sonido Chromecast offf')
+        if os.popen("pactl list short modules | grep module-loopback | wc -l").read()[0]>='1':
             os.system("pactl unload-module module-loopback")
+            await update.message.reply_text(f'Sonido Chromecast offf')
+        else:
+            os.system("pactl load-module module-loopback")
+            await update.message.reply_text(f'Sonido Chromecast onnn')
 
 async def set_volumen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if len(context.args) < 1 or len(context.args[0])>3:
