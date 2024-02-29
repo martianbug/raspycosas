@@ -94,6 +94,9 @@ async def speech(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     msg = ' '.join(context.args)
     speech_file = text_to_speech(msg)
     os.system('mpg123 ' + speech_file)
+
+async def sad(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
+    os.system('mpg123 ' + 'data/sounds/sad.mp3')
     
 async def speech_italian(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
     if len(context.args)<1:

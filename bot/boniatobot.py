@@ -109,6 +109,8 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("volume", set_volumen))
     app.add_handler(CommandHandler("volume_up", increase_volume))
     app.add_handler(CommandHandler("volume_down", decrease_volume))
+    app.add_handler(CommandHandler("fail", sad))
+    
     app.add_handler(CommandHandler("di", speech))
     app.add_handler(CommandHandler("di_it", speech_italian))
     # app.add_handler(CommandHandler("spotify", spotify))
