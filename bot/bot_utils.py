@@ -244,6 +244,19 @@ async def full_light_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     url = my_secrets.HOMEASSISTANT_URL + 'scene/turn_on'
     data = {"entity_id": 'scene.full_light'}
     response = post(url, headers=my_secrets.HOMEASSISTANT_HEADERS, json=data)
+    print(response.text) 
+     
+async def mesa_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(f'Luz mesa')
+    url = my_secrets.HOMEASSISTANT_URL + 'scene/turn_on'
+    data = {"entity_id": 'scene.luz_mesa'}
+    response = post(url, headers=my_secrets.HOMEASSISTANT_HEADERS, json=data)
+    print(response.text)  
+    
+async def leds_studio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    url = my_secrets.HOMEASSISTANT_URL + 'light/toggle'
+    data = {"entity_id": 'light.leds_studio_luz_2'}
+    response = post(url, headers=my_secrets.HOMEASSISTANT_HEADERS, json=data)
     print(response.text)  
 
 async def romantic_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -254,7 +267,7 @@ async def romantic_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     print(response.text)  
      
 async def controller(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    items = ['/romantic', '/luz', '/cine']
+    items = ['/romantic', '/luz_mesa', '/luz', '/cine', '/leds_studio']
     reply_keyboard = [items + ['/salir']]
     await update.message.reply_text(
         "Qué enciendo?",
