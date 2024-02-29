@@ -1,37 +1,33 @@
 import asyncio
+import csv
 import difflib
 import html
 import json
 import logging
 import os
+import random
 import shutil
 import time
 import traceback
-import random
-
 from datetime import datetime
 from heapq import nlargest, nsmallest
 
 import aiohttp
-from joblib import Parallel, delayed
+import bot_constants as C
 import matplotlib.pyplot as plt
+import my_secrets
 import numpy as np
-import csv
 import requests
-from translate import Translator
-
 from aiopvpc import PVPCData
+from bicimad_utils import login_and_get_vals, print_results, print_results_casa
+from gtts import gTTS
+from joblib import Parallel, delayed
 from scipy.interpolate import interp1d
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.constants import ParseMode
-from telegram.ext import (ContextTypes, ConversationHandler)
-from bicimad_utils import login_and_get_vals, print_results, print_results_casa
-
-import bot_constants as C
-
-from gtts import gTTS
-import os
-
+from telegram.ext import ContextTypes, ConversationHandler
+from translate import Translator
+from requests import post
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
@@ -234,7 +230,45 @@ async def list_items(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     else:
         message = "Lista vacía"
     await update.message.reply_text(message)
-    
+
+
+async def cine_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(f'Modo cine activado! 🎦')
+    url = my_secrets.HOMEASSISTANT_URL + 'scene/turn_on'
+    data = {"entity_id": 'scene.cine'}
+    response = post(url, headers=my_secrets.HOMEASSISTANT_HEADERS, json=data)
+    print(response.text)
+
+async def full_light_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(f'LUZZ 💡')
+    url = my_secrets.HOMEASSISTANT_URL + 'scene/turn_on'
+    data = {"entity_id": 'scene.full_light'}
+    response = post(url, headers=my_secrets.HOMEASSISTANT_HEADERS, json=data)
+    print(response.text)  
+
+async def romantic_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(f'💖')
+    url = my_secrets.HOMEASSISTANT_URL + 'scene/turn_on'
+    data = {"entity_id": 'scene.romantic'}
+    response = post(url, headers=my_secrets.HOMEASSISTANT_HEADERS, json=data)
+    print(response.text)  
+     
+async def controller(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    items = ['/romantic', '/luz', '/cine']
+    reply_keyboard = [items + ['/salir']]
+    await update.message.reply_text(
+        "Qué enciendo?",
+        reply_markup=ReplyKeyboardMarkup(
+                reply_keyboard, one_time_keyboard = False, input_field_placeholder="",
+            resize_keyboard = True,
+            ),
+        )
+    return 1
+
+async def control_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    ''
+    return ConversationHandler.END
+
 async def delete_items(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     items = consult_file_items(C.ITEMS_FILE)
     if not items:
@@ -245,7 +279,9 @@ async def delete_items(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await update.message.reply_text(
         "Elije un item: ",
         reply_markup=ReplyKeyboardMarkup(
-                reply_keyboard, one_time_keyboard = False, input_field_placeholder=""
+                reply_keyboard, one_time_keyboard = False, input_field_placeholder="",
+            resize_keyboard = True,
+            
             ),
         )
     return DEL_ITEM
@@ -263,7 +299,7 @@ async def get_price():
     async with aiohttp.ClientSession() as session:
         pvpc_handler = PVPCData(session = session, tariff = "2.0TD")
         prices: dict = await pvpc_handler.async_update_all(current_data=None, now=datetime.now())
-        prices=prices.sensors['PVPC']
+        prices = prices.sensors['PVPC']
         prices = {k.hour: v for k, v in prices.items()}
     return prices
 

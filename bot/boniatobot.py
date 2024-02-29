@@ -22,13 +22,19 @@ async def reboot(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Reset!!")
     os.system("sudo reboot")
     
-async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def cancel_delete_items(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Cancels and ends the conversation."""
     user = update.message.from_user
     logger.info("User %s canceled the conversation.", user.first_name)
     await update.message.reply_text(
         "Valeee gracias por comprar ❤️", reply_markup=ReplyKeyboardRemove()
     )
+    return ConversationHandler.END
+
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Cancels and ends the conversation."""
+    user = update.message.from_user
+    logger.info("User %s canceled the conversation.", user.first_name)
     return ConversationHandler.END
 
 async def price(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -42,11 +48,11 @@ async def price(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     
 async def switch_sound(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if os.popen("pactl list short modules | grep module-loopback | wc -l").read()[0]=='1':
-            await update.message.reply_text(f'Sonido Chromecast off')
-            os.system("pactl unload-module module-loopback")
-        else:
             await update.message.reply_text(f'Sonido Chromecast onnn')
             os.system("pactl load-module module-loopback")
+        else:
+            await update.message.reply_text(f'Sonido Chromecast offf')
+            os.system("pactl unload-module module-loopback")
 
 async def set_volumen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if len(context.args) < 1 or len(context.args[0])>3:
@@ -64,14 +70,6 @@ async def set_volumen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 #     os.system(' ./spotify_stop.sh')
 #     await update.message.reply_text(f'Music OFF')
     
-async def cine(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text(f'Romantic')
-    url = "http://192.168.1.20:8123/api/events/"
-    headers = {"Authorization": "BEARER eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJiZjNkN2Q3MzEzNmY0ODBmOGFlMTRmYWI1NDRhNDhhZiIsImlhdCI6MTcwODYyOTA2NCwiZXhwIjoyMDIzOTg5MDY0fQ.xQgZpDSTW7GsQwktdcUCLCIoYwDhW3Nz_we-LbruxZM"}
-    data = {"entity_id": "scene.cine"}
-    response = post(url, headers=headers, json=data)
-    print(response.text)
-    
 async def increase_volume(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.reply_text(f'Subiendo volumen')
             os.system("amixer -D pulse sset Master 10%+")    
@@ -88,9 +86,19 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("holita", hola))
     app.add_handler(CommandHandler('stop', stop))
     app.add_handler(CommandHandler('reboot', reboot))
-    app.add_handler(CommandHandler('romantic', cine))
+    app.add_handler(CommandHandler('cine', cine_on))
+    app.add_handler(CommandHandler('luz', full_light_on))
+    app.add_handler(CommandHandler('romantic', romantic_on))
+    controller_handler = ConversationHandler(
+        entry_points=[CommandHandler("mando", controller)],
+        allow_reentry = True,
+        states={
+            1: [MessageHandler(filters.TEXT & ~filters.COMMAND, control_event),
+                CommandHandler("salir", cancel)],
+        },
+        fallbacks=[CommandHandler("salir", cancel)])
     
-    
+    app.add_handler(controller_handler)
     app.add_handler(CommandHandler("bicimadcasa", get_casa_bikes))
     app.add_handler(MessageHandler(filters.LOCATION, get_bikes_nearby))
     app.add_handler(CommandHandler("sound", switch_sound))
@@ -99,10 +107,8 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("volume_down", decrease_volume))
     app.add_handler(CommandHandler("di", speech))
     app.add_handler(CommandHandler("di_it", speech_italian))
-    
     # app.add_handler(CommandHandler("spotify", spotify))
     # app.add_handler(CommandHandler("spotify_stop", spotify_stop))
-    
     app.add_handler(CommandHandler("chill_andrea", chill))
     # app.add_handler(CommandHandler("proyector_on", proyector_on))
     # app.add_handler(CommandHandler("proyector_off", proyector_off))
@@ -116,15 +122,15 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("borrar", delete_item))
     app.add_handler(CommandHandler("lista_compra", list_items))
     app.add_handler(CommandHandler("compra_reset", reset_items))
-    conv_handler = ConversationHandler(
+    items_handler = ConversationHandler(
         entry_points=[CommandHandler("borrar_items", delete_items)],
         allow_reentry = True,
         states={
             DEL_ITEM: [MessageHandler(filters.TEXT & ~filters.COMMAND, delete_markup_item),
-                CommandHandler("salir", cancel)],
+                CommandHandler("salir", cancel_delete_items)],
         },
-        fallbacks=[CommandHandler("salir", cancel)])
-    app.add_handler(conv_handler)
+        fallbacks=[CommandHandler("salir", cancel_delete_items)])
+    app.add_handler(items_handler)
     app.add_error_handler(error_handler) # error handling
     unknown_handler = MessageHandler(filters.COMMAND, unknown)
     app.add_handler(unknown_handler)
