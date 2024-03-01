@@ -323,7 +323,7 @@ async def romantic_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     print(response.text)  
      
 async def controller(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    items = ['/romantic', '/luz_mesa', '/luz', '/cine', '/leds_studio']
+    items = ['/romantic', '/luz_mesa', '/luz', '/cine', '/cozy', '/leds_studio']
     reply_keyboard = [items + ['/salir']]
     await update.message.reply_text(
         "Qué enciendo?",
