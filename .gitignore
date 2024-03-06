@@ -16,3 +16,9 @@ bot/data/*.csv
 data/items.csv
 .vscode/*
 Lib/*
+__pycache__/*
+Scripts/*
+.gitmodules
+.python-version
+.stignore
+pyvenv.cfg
