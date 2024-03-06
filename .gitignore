@@ -10,7 +10,7 @@ __pypackages__/3.8/share/man/man1
 didonebert/__pycache__
 data/dataframe.csv
 ltex.dictionary.en-US.txt
-
+.vscode/*
 *.csv
 */*my_secrets.py
 bot/data/*.csv
