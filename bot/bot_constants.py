@@ -44,6 +44,19 @@ IMAGE_FOLDER = 'bot_images/'
 data_prefix = 'data'
 ITEMS_FILE = os.path.join(data_prefix, 'items.csv')
 DEVICES_FILE = os.path.join(data_prefix, 'devices.json')
+HEADER_ELECTRICITY_PRICES = [23, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
+
+ELECTRICITY_FILE = 'electricity_prices.csv'
+ELECTIRICY_SENTENCES_GOOD = [
+    'Hey! Te acuerdas de esa lavadora que querías poner? A las {} es la hora más barata, aprovecha!',
+    'Oye, a las {} va a ser mega barato. Aprovecha para poner el horno y el lavavajillas si hace falta <3',
+]
+ELECTIRICY_SENTENCES_BAD = [
+    'Psst, no irás a ponerte a tender ahora que está carísimo, no? Si te esperas a las {} va a ser súper barato',
+    'Piensa en los piratas, ellos no tenian calefacción. Juguemos a la hora pirata hasta las {} 🏴‍☠',
+]
+ELECTRICITY_KIND_MESSAGES = {'GOOD': 0, 'BAD': 1}
+
 
 ANDREA_PHRASES = [
     "Andrea trancuila respira",

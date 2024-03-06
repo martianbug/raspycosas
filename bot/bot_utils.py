@@ -2,6 +2,7 @@ import asyncio
 import difflib
 import html
 import json
+import csv
 import logging
 import os
 import shutil
@@ -9,7 +10,7 @@ import time
 import traceback
 import random
 
-from datetime import datetime
+from datetime import datetime, time
 from heapq import nlargest, nsmallest
 
 import aiohttp
@@ -79,41 +80,6 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Lo siento, ese comando no lo conozco")
 
-async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    translator = Translator(from_lang = 'en', to_lang="es", pro = True)
-    complete_url = C.URL_WEATHER.format(mode=C.WEATHER) + "appid=" + C.WEATHER_API_KEY + "&q=" + 'Peña Grande'
-    response = requests.get(complete_url)
-    x = response.json()
-    if x["cod"] != "404":
-        y = x["main"]
-        temp = round(y["temp"] - 273.15, 2)
-        temp_feel = round(y["feels_like"] - 273.15, 2)
-        humidity = y["humidity"]
-        description = x["weather"][0]['description']
-        z_translated = translator.translate(description.capitalize())
-    await update.message.reply_text(f"La temperatura es {temp}°C. Sensación termica: {temp_feel}°C.\nHumedad del {humidity}%. {z_translated}.")
-
-async def weather_forecast(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    translator= Translator(from_lang = 'en', to_lang="es", pro = True)
-    complete_url = C.URL_WEATHER.format(mode=C.FORECAST) + "appid=" + C.WEATHER_API_KEY + "&q=" + 'Peña Grande'
-    response = requests.get(complete_url)
-    x = response.json()
-    next_forecasts = x['list']
-    if x["cod"] != "404":
-        msgs = Parallel(n_jobs=3)(delayed(get_forecast_info)(translator, forecast) for forecast in next_forecasts[:20])
-    # for forecast in next_forecasts[:20]:
-    #         get_forecast_info(translator,forecast)
-    await update.message.reply_text(''.join(msgs), parse_mode=ParseMode.HTML)
-
-def get_forecast_info(translator, forecast):
-    when = datetime.fromtimestamp(forecast['dt'])
-    y = forecast['main']
-    temp = round(y["temp"] - 273.15, 2)
-    humidity = y["humidity"]
-    description = forecast["weather"][0]['description']
-    z_translated = translator.translate(description.capitalize())
-    return f"<b>{when}</b> -> T: {temp}°C. H: {humidity}%. {z_translated}\n"
-
 async def proyector_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if check_permission(update):
         if shutil.which('irsend') is None:
@@ -136,6 +102,9 @@ async def proyector_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     else:
         await update.message.reply_text(f'No tienes permiso para emitir esa orden!')
 
+'''
+[BEGIN] SHOPPING LIST SECTION
+'''
 async def add_item(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     data = []
     if len(context.args) < 1:
@@ -229,12 +198,18 @@ async def delete_markup_item(update: Update, context: ContextTypes.DEFAULT_TYPE)
     save_list_as_csv(data, C.ITEMS_FILE)
     # return ConversationHandler.END
     return DEL_ITEM
+'''
+[END] SHOPPING LIST SECTION
+'''
 
+'''
+[BEGIN] ELECTRICITY PRICE SECTION
+'''
 async def get_price():  
     async with aiohttp.ClientSession() as session:
         pvpc_handler = PVPCData(session = session, tariff = "2.0TD")
         prices: dict = await pvpc_handler.async_update_all(current_data=None, now=datetime.now())
-        prices=prices.sensors['PVPC']
+        prices = prices.sensors['PVPC']
         prices = {k.hour: v for k, v in prices.items()}
     return prices
 
@@ -250,23 +225,24 @@ async def get_price_now(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
          text+=' Esto es normalito 🥹'
     await update.message.reply_text(text, reply_markup=ReplyKeyboardRemove()) 
     
-async def message_price_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if C.BUTTONS_PRICE[0] == update.message.text:
-        await get_price_now(update, context)
-    if C.BUTTONS_PRICE[1] == update.message.text:
-        await get_price_graph(update, context)
-    
-async def get_price_graph(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+def record_electricity_data(prices_json):
+    final_row = [datetime.today().strftime('%d/%m/%Y')] + list(prices_json.values())
+    with open(C.ELECTRICITY_FILE, 'w+') as data_file:
+        csv_writer = csv.writer(data_file)
+        csv_writer.writerow(final_row)
+        data_file.close()
+
+async def update_pvpc_graph():
     dest_path = os.path.join(C.IMAGE_FOLDER ,f'prices_{datetime.now().strftime("%d-%m-%Y %H_%M_%S")}.png')
     if os.path.exists(dest_path):
-        await update.message.reply_photo(dest_path, reply_markup=ReplyKeyboardRemove())
-        return
+        return (dest_path, None)
     prices = await asyncio.create_task(get_price())
-    y=np.array(list(prices.values()))
-    x=np.array(list(prices.keys()))
+    record_electricity_data(prices)
+    y = np.array(list(prices.values()))
+    x = np.array(list(prices.keys()))
     cubic_interpolation_model = interp1d(x, y, kind = "cubic")
-    X_=np.linspace(x.min(), x.max(), 300)
-    Y_=cubic_interpolation_model(X_)
+    X_ = np.linspace(x.min(), x.max(), 300)
+    Y_ = cubic_interpolation_model(X_)
     plt.rcParams.update({'font.size': 22, 'font.family': 'sans-serif'})
     plt.figure(figsize=(16,10), dpi= 80)
     plt.grid()
@@ -277,8 +253,72 @@ async def get_price_graph(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     # plt.legend(loc=2, prop={'size': 10})
     plt.plot(X_, Y_, 'g')
     plt.savefig(dest_path)
-    await update.message.reply_photo(dest_path, reply_markup=ReplyKeyboardRemove())
+    return(dest_path, prices)
 
+async def get_price_graph(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    electricity_graph, prices = await asyncio.create_task(update_pvpc_graph())
+    await update.message.reply_photo(electricity_graph, reply_markup=ReplyKeyboardRemove())
+
+async def electricity_alarms(context: ContextTypes.DEFAULT_TYPE) -> None:
+    job = context.job
+    hour = job.data['hour']
+    kind = job.data['kind']
+    message = ''
+    if 'low' in kind:
+        message = C.ELECTIRICY_SENTENCES_GOOD[random.randint(len(C.ELECTIRICY_SENTENCES_GOOD))].format(hour)
+    else:
+        message = C.ELECTIRICY_SENTENCES_BAD[random.randint(len(C.ELECTIRICY_SENTENCES_BAD))].format(hour)
+    await context.bot.send_message(job.chat_id, text=message)
+
+async def alarm_prices(context: ContextTypes.DEFAULT_TYPE) -> None:
+    '''
+    First, download today's data
+    Second, extract max and min values from time periods. There are two period:
+        - 8 - 17
+        - 18 - 23
+    Third, set the reminders to send a message around those times
+    '''
+    periods = {'morning': [8, 16],
+                'evening': [17, 23]}
+    sensibility = 2
+    electricity_graph, prices = await asyncio.create_task(update_pvpc_graph())
+    prices_sorted_by_time = dict(sorted(prices.items(), key=lambda item: item[0]))
+    morning = list(prices_sorted_by_time.items())[periods['morning'][0]:periods['morning'][1]]
+    evening = list(prices_sorted_by_time.items())[periods['evening'][0]:periods['evening'][1]]
+    min_prices_morning = sorted(morning, key=lambda item: item[1])
+    min_prices_evening = sorted(evening, key=lambda item: item[1])
+    max_prices_morning = sorted(morning, key=lambda item: item[1], reverse=True)
+    max_prices_evening = sorted(evening, key=lambda item: item[1], reverse=True)
+    # Select the lowest prices and take the earliest from those
+    #sensibility defines the range of times to select to get the highest and lowests
+    values = {
+        'lowest_early_morning_price': sorted(min_prices_morning[:sensibility])[0][0],
+        'lowest_early_evening_price': sorted(min_prices_evening[:sensibility])[0][0],
+        'highest_early_morning_price': sorted(max_prices_morning[:sensibility])[0][0],
+        'highest_early_evening_price': sorted(max_prices_evening[:sensibility])[0][0]
+    }
+    for key in values.keys():
+        context.job_queue.run_once(electricity_alarms, chat_id=C.GROUP_CHAT_ID, 
+                                   when=time(hour = values[key]-1, minute = 50),
+                                   data={'hour':values[key], 'kind': key})
+        
+async def set_job_peak_times(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    #This functions runs every day at midnight to update the values of the day
+    context.job_queue.run_daily(alarm_prices, chat_id=C.GROUP_CHAT_ID, time=datetime.time(0,1))
+
+async def message_price_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if C.BUTTONS_PRICE[0] == update.message.text:
+        await get_price_now(update, context)
+    if C.BUTTONS_PRICE[1] == update.message.text:
+        await get_price_graph(update, context)
+
+'''
+[END] ELECTRICITY PRICE SECTION
+'''
+
+'''
+[BEGIN] WEATHER SECTION
+'''
 async def alarm_rain(context: ContextTypes.DEFAULT_TYPE) -> None:
     job = context.job
     complete_url = C.URL_WEATHER.format(mode=C.WEATHER) + "appid=" + C.WEATHER_API_KEY + "&q=" + 'Peña Grande'
@@ -308,6 +348,47 @@ def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
         job.schedule_removal()
     return True
 
+async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    translator = Translator(from_lang = 'en', to_lang="es", pro = True)
+    complete_url = C.URL_WEATHER.format(mode=C.WEATHER) + "appid=" + C.WEATHER_API_KEY + "&q=" + 'Peña Grande'
+    response = requests.get(complete_url)
+    x = response.json()
+    if x["cod"] != "404":
+        y = x["main"]
+        temp = round(y["temp"] - 273.15, 2)
+        temp_feel = round(y["feels_like"] - 273.15, 2)
+        humidity = y["humidity"]
+        description = x["weather"][0]['description']
+        z_translated = translator.translate(description.capitalize())
+    await update.message.reply_text(f"La temperatura es {temp}°C. Sensación termica: {temp_feel}°C.\nHumedad del {humidity}%. {z_translated}.")
+
+async def weather_forecast(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    translator= Translator(from_lang = 'en', to_lang="es", pro = True)
+    complete_url = C.URL_WEATHER.format(mode=C.FORECAST) + "appid=" + C.WEATHER_API_KEY + "&q=" + 'Peña Grande'
+    response = requests.get(complete_url)
+    x = response.json()
+    next_forecasts = x['list']
+    if x["cod"] != "404":
+        msgs = Parallel(n_jobs=3)(delayed(get_forecast_info)(translator, forecast) for forecast in next_forecasts[:20])
+    # for forecast in next_forecasts[:20]:
+    #         get_forecast_info(translator,forecast)
+    await update.message.reply_text(''.join(msgs), parse_mode=ParseMode.HTML)
+
+def get_forecast_info(translator, forecast):
+    when = datetime.fromtimestamp(forecast['dt'])
+    y = forecast['main']
+    temp = round(y["temp"] - 273.15, 2)
+    humidity = y["humidity"]
+    description = forecast["weather"][0]['description']
+    z_translated = translator.translate(description.capitalize())
+    return f"<b>{when}</b> -> T: {temp}°C. H: {humidity}%. {z_translated}\n"
+'''
+[END] WEATHER SECTION
+'''
+
+'''
+[BEGIN] BICIMAD SECTION
+'''
 async def get_casa_bikes(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = print_results_casa(login_and_get_vals(coordinates=C.coordinates))
     await context.bot.send_message(update.effective_chat.id, message, parse_mode=ParseMode.HTML)
@@ -321,3 +402,7 @@ async def get_bikes_nearby(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     if message == '':
         message = 'No se han encontrado estaciones cerca! Prueba de nuevo :)' 
     await context.bot.send_message(update.effective_chat.id, message, parse_mode=ParseMode.HTML)
+
+'''
+[END] BICIMAD SECTION
+'''

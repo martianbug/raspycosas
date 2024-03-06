@@ -1,4 +1,3 @@
-
 import my_secrets
 
 import signal
@@ -77,6 +76,7 @@ if __name__ == "__main__":
     # app.add_handler(CommandHandler("proyector_off", proyector_off))
     app.add_handler(CommandHandler("precio", price))
     app.add_handler(MessageHandler(filters.Text(C.BUTTONS_PRICE), message_price_handler))
+    app.add_handler(CommandHandler("price_reminder", set_job_peak_times))
     app.add_handler(CommandHandler("tiempo", weather))
     app.add_handler(CommandHandler("tiempo_prediccion", weather_forecast))
     app.add_handler(CommandHandler("alarma_lluvia", set_job_rain))
