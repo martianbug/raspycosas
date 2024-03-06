@@ -28,7 +28,6 @@ WEATHER_API_KEY = '020c34777ba593331d1bab78e24e44a2'
 WEATHER = "weather"
 FORECAST = "forecast"
 
-
 URL_WEATHER = "http://api.openweathermap.org/data/2.5/{mode}?"
 
 SERVER_URL = "http://192.168.1.123"

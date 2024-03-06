@@ -1,34 +1,33 @@
 import asyncio
+import csv
 import difflib
 import html
 import json
 import csv
 import logging
 import os
+import random
 import shutil
 import time
 import traceback
-import random
-
-from datetime import datetime, time
+from datetime import datetime
 from heapq import nlargest, nsmallest
-
 import aiohttp
-from joblib import Parallel, delayed
+import bot_constants as C
 import matplotlib.pyplot as plt
+import my_secrets
 import numpy as np
-import csv
 import requests
-from translate import Translator
-
 from aiopvpc import PVPCData
+from bicimad_utils import login_and_get_vals, print_results, print_results_casa
+from gtts import gTTS
+from joblib import Parallel, delayed
 from scipy.interpolate import interp1d
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.constants import ParseMode
-from telegram.ext import (ContextTypes, ConversationHandler)
-from bicimad_utils import login_and_get_vals, print_results, print_results_casa
-
-import bot_constants as C
+from telegram.ext import ContextTypes, ConversationHandler
+from translate import Translator
+from requests import post
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -36,6 +35,15 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 DEL_ITEM = range(1)
 
+translator_italian = Translator(from_lang = 'es', to_lang="it", pro = True)
+
+
+def text_to_speech(text):
+    speech = gTTS(text, lang='it')
+    speech_file = 'speech.mp3'
+    speech.save(speech_file)
+    return speech_file
+    
 def read_csv_as_list(file_path):
     with open(file_path, 'r') as csvfile:
         data = list(csv.reader(csvfile))[0]
@@ -79,6 +87,72 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Lo siento, ese comando no lo conozco")
+    
+async def sad(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
+    os.system('mpg123 ' + 'data/sounds/sad.mp3')
+    
+
+async def speech(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
+    if len(context.args)<1:
+        await update.message.reply_text(f'Pero qué digo???')
+        return
+    msg = ' '.join(context.args)
+    speech_file = text_to_speech(msg)
+    os.system('mpg123 ' + speech_file)
+    os.system('rm '+ speech_file)
+    
+async def speech_italian(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
+    if len(context.args)<1:
+        await update.message.reply_text(f'Pero qué digo???')
+        return
+    msg = ' '.join(context.args)
+    msg_translated = translator_italian.translate(msg)
+    speech_file = text_to_speech(msg_translated)
+    os.system('mpg123 ' + speech_file)
+    os.system('rm '+ speech_file)
+
+
+async def price(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    reply_keyboard = [[C.BUTTONS_PRICE[0], C.BUTTONS_PRICE[1]]]
+    await update.message.reply_text(
+        "Elije una opción:",
+        reply_markup=ReplyKeyboardMarkup(
+                reply_keyboard, one_time_keyboard=True, input_field_placeholder=""
+            ),
+        )
+    
+async def switch_sound(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        if os.popen("pactl list short modules | grep module-loopback | wc -l").read()[0]>='1':
+            os.system("pactl unload-module module-loopback")
+            await update.message.reply_text(f'Sonido Chromecast offf')
+        else:
+            os.system("pactl load-module module-loopback")
+            await update.message.reply_text(f'Sonido Chromecast onnn')
+
+async def set_volumen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if len(context.args) < 1 or len(context.args[0])>3:
+        await update.message.reply_text(f'Debes decirme un número de volumen')
+        return
+    v = int(context.args[0])
+    await update.message.reply_text(f'Volumen al {v}%')
+    os.system(f"amixer -D pulse sset Master {v}%")
+
+# async def spotify(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
+#     os.system('sh ./attach_spotify.sh')
+#     await update.message.reply_text(f'Music ON')
+    
+# async def spotify_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
+#     os.system(' ./spotify_stop.sh')
+#     await update.message.reply_text(f'Music OFF')
+    
+async def increase_volume(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+            await update.message.reply_text(f'Subiendo volumen')
+            os.system("amixer -D pulse sset Master 10%+")    
+
+async def decrease_volume(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+            await update.message.reply_text(f'Subiendo volumen')
+            os.system("amixer -D pulse sset Master 10%-")            
+
 
 async def proyector_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if check_permission(update):
@@ -174,7 +248,65 @@ async def list_items(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     else:
         message = "Lista vacía"
     await update.message.reply_text(message)
+
+
+async def cine_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(f'Modo cine activado! 🎦')
+    url = my_secrets.HOMEASSISTANT_URL + 'scene/turn_on'
+    data = {"entity_id": 'scene.cine'}
+    response = post(url, headers=my_secrets.HOMEASSISTANT_HEADERS, json=data)
+    print(response.text)
+
+async def full_light_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(f'LUZZ 💡')
+    url = my_secrets.HOMEASSISTANT_URL + 'scene/turn_on'
+    data = {"entity_id": 'scene.full_light'}
+    response = post(url, headers=my_secrets.HOMEASSISTANT_HEADERS, json=data)
+    print(response.text) 
+     
+async def mesa_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(f'Luz mesa')
+    url = my_secrets.HOMEASSISTANT_URL + 'scene/turn_on'
+    data = {"entity_id": 'scene.luz_mesa'}
+    response = post(url, headers=my_secrets.HOMEASSISTANT_HEADERS, json=data)
+    print(response.text)
+
+async def cozy_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(f'Trrrranqui tiiio')
+    url = my_secrets.HOMEASSISTANT_URL + 'scene/turn_on'
+    data = {"entity_id": 'scene.cozy'}
+    response = post(url, headers=my_secrets.HOMEASSISTANT_HEADERS, json=data)
+    print(response.text) 
     
+async def leds_studio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    url = my_secrets.HOMEASSISTANT_URL + 'light/toggle'
+    data = {"entity_id": 'light.leds_studio_luz_2'}
+    response = post(url, headers=my_secrets.HOMEASSISTANT_HEADERS, json=data)
+    print(response.text)  
+
+async def romantic_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(f'💖')
+    url = my_secrets.HOMEASSISTANT_URL + 'scene/turn_on'
+    data = {"entity_id": 'scene.romantic'}
+    response = post(url, headers=my_secrets.HOMEASSISTANT_HEADERS, json=data)
+    print(response.text)  
+     
+async def controller(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    items = ['/romantic', '/luz_mesa', '/luz', '/cine', '/cozy', '/leds_studio']
+    reply_keyboard = [items + ['/salir']]
+    await update.message.reply_text(
+        "Qué enciendo?",
+        reply_markup=ReplyKeyboardMarkup(
+                reply_keyboard, one_time_keyboard = False, input_field_placeholder="",
+            resize_keyboard = True,
+            ),
+        )
+    return 1
+
+async def control_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    ''
+    return ConversationHandler.END
+
 async def delete_items(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     items = consult_file_items(C.ITEMS_FILE)
     if not items:
@@ -185,7 +317,9 @@ async def delete_items(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await update.message.reply_text(
         "Elije un item: ",
         reply_markup=ReplyKeyboardMarkup(
-                reply_keyboard, one_time_keyboard = False, input_field_placeholder=""
+                reply_keyboard, one_time_keyboard = False, input_field_placeholder="",
+            resize_keyboard = True,
+            
             ),
         )
     return DEL_ITEM
@@ -223,7 +357,7 @@ async def get_price_now(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         text+=' Aprovecha ahora para cosas tochas y ahorrar 🤑'
     else:
          text+=' Esto es normalito 🥹'
-    await update.message.reply_text(text, reply_markup=ReplyKeyboardRemove()) 
+    await update.message.reply_text(text, reply_markup=ReplyKeyboardRemove())
     
 def record_electricity_data(prices_json):
     final_row = [datetime.today().strftime('%d/%m/%Y')] + list(prices_json.values())
