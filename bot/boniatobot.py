@@ -96,6 +96,7 @@ if __name__ == "__main__":
         },
         fallbacks=[CommandHandler("salir", cancel_delete_items)])
     app.add_handler(items_handler)
+
     app.add_error_handler(error_handler) # error handling
     unknown_handler = MessageHandler(filters.COMMAND, unknown)
     app.add_handler(unknown_handler)

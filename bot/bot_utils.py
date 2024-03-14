@@ -12,6 +12,7 @@ import time
 import traceback
 from datetime import datetime
 from heapq import nlargest, nsmallest
+import types
 import aiohttp
 import bot_constants as C
 import matplotlib.pyplot as plt
@@ -216,7 +217,7 @@ async def delete_item(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         try:
             closest = difflib.get_close_matches(item, data)[0]
             data.remove(closest)
-            await update.message.reply_text(f'Has escrito "{item}" regulín pero lo he encontrado! {closest} eliminado ;)')        
+            await update.message.reply_text(f'Has escrito "{item}" regulín pero lo he encontrado! "{closest}" eliminado ;)')        
         except:
             await update.message.reply_text(f'"{item}" no está en la lista!')        
             return
@@ -294,17 +295,19 @@ async def romantic_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 async def controller(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     items = ['/romantic', '/luz_mesa', '/luz', '/cine', '/cozy', '/leds_studio']
     reply_keyboard = [items + ['/salir']]
+    markup = types.ReplyKeyboardMarkup()
+    for x in reply_keyboard:
+        markup.add(types.ReplyKeyboardButton(x))
     await update.message.reply_text(
         "Qué enciendo?",
         reply_markup=ReplyKeyboardMarkup(
-                reply_keyboard, one_time_keyboard = False, input_field_placeholder="",
+                markup, one_time_keyboard = False, input_field_placeholder="",
             resize_keyboard = True,
             ),
         )
     return 1
 
 async def control_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    ''
     return ConversationHandler.END
 
 async def delete_items(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
