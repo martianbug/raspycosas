@@ -23,7 +23,7 @@ from bicimad_utils import login_and_get_vals, print_results, print_results_casa
 from gtts import gTTS
 from joblib import Parallel, delayed
 from scipy.interpolate import interp1d
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardButton, ReplyKeyboardRemove, Update
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes, ConversationHandler
 from translate import Translator
