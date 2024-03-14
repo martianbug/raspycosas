@@ -75,7 +75,8 @@ def print_results(results: dict):
     return(full_message)
 
 def format_station_name(available_bikes, station_id, coordinates):
-    url = f'google.com/maps/place/{coordinates[1]},{coordinates[0]}'
+    # url = f'google.com/maps/place/{coordinates[1]},{coordinates[0]}'
+    url = f'https://maps.google.com?q={coordinates[1]},{coordinates[0]}'
     station_name = station_names[station_id]['name'].split(' - ')[-1] if station_id not in C.custom_station_names.keys() else C.custom_station_names[station_id]
     single_message = C.message['single'].format(f'<a href="{url}">{station_name}</a>', available_bikes)
     return single_message + '\n'

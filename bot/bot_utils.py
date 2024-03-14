@@ -12,7 +12,6 @@ import time
 import traceback
 from datetime import datetime
 from heapq import nlargest, nsmallest
-import types
 import aiohttp
 import bot_constants as C
 import matplotlib.pyplot as plt
@@ -24,7 +23,7 @@ from bicimad_utils import login_and_get_vals, print_results, print_results_casa
 from gtts import gTTS
 from joblib import Parallel, delayed
 from scipy.interpolate import interp1d
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardButton, ReplyKeyboardRemove, Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes, ConversationHandler
 from translate import Translator
@@ -295,13 +294,10 @@ async def romantic_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 async def controller(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     items = ['/romantic', '/luz_mesa', '/luz', '/cine', '/cozy', '/leds_studio']
     reply_keyboard = [items + ['/salir']]
-    markup = types.ReplyKeyboardMarkup()
-    for x in reply_keyboard:
-        markup.add(types.ReplyKeyboardButton(x))
     await update.message.reply_text(
         "Qué enciendo?",
         reply_markup=ReplyKeyboardMarkup(
-                markup, one_time_keyboard = False, input_field_placeholder="",
+                reply_keyboard, one_time_keyboard = False, input_field_placeholder="",
             resize_keyboard = True,
             ),
         )
