@@ -265,19 +265,23 @@ async def full_light_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     print(response.text) 
      
 async def mesa_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text(f'Luz mesa')
-    url = my_secrets.HOMEASSISTANT_URL + 'scene/turn_on'
-    data = {"entity_id": 'scene.luz_mesa'}
-    response = post(url, headers=my_secrets.HOMEASSISTANT_HEADERS, json=data)
-    print(response.text)
+    try:
+        await update.message.reply_text(f'Luz mesa')
+        url = my_secrets.HOMEASSISTANT_URL + 'scene/turn_on'
+        data = {"entity_id": 'scene.luz_mesa'}
+        response = post(url, headers=my_secrets.HOMEASSISTANT_HEADERS, json=data)
+    except:
+        await update.message.reply_text(f'Problemas con la conexion a Home Assistant!')
 
 async def cozy_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text(f'Trrrranqui tiiio')
-    url = my_secrets.HOMEASSISTANT_URL + 'scene/turn_on'
-    data = {"entity_id": 'scene.cozy'}
-    response = post(url, headers=my_secrets.HOMEASSISTANT_HEADERS, json=data)
-    print(response.text) 
-    
+    try:
+        url = my_secrets.HOMEASSISTANT_URL + 'scene/turn_on'
+        data = {"entity_id": 'scene.cozy'}
+        response = post(url, headers=my_secrets.HOMEASSISTANT_HEADERS, json=data)
+        await update.message.reply_text(f'Trrrranqui tiiio')
+    except:
+        await update.message.reply_text(f'Problemas con la conexion a Home Assistant!')
+        
 async def leds_studio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     url = my_secrets.HOMEASSISTANT_URL + 'light/toggle'
     data = {"entity_id": 'light.leds_studio_luz_2'}
