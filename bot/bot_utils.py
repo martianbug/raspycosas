@@ -135,7 +135,7 @@ async def set_volumen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         return
     v = int(context.args[0])
     await update.message.reply_text(f'Volumen al {v}%')
-    os.system(f"amixer -D pulse sset Master {v}%")
+    os.system(f"pulsemixer --set-volume {v}")
 
 # async def spotify(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
 #     os.system('sh ./attach_spotify.sh')
@@ -147,11 +147,11 @@ async def set_volumen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     
 async def increase_volume(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.reply_text(f'Subiendo volumen')
-            os.system("amixer -D pulse sset Master 10%+")    
+            os.system("pulsemixer --change-volume +10")    
 
 async def decrease_volume(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-            await update.message.reply_text(f'Subiendo volumen')
-            os.system("amixer -D pulse sset Master 10%-")            
+            await update.message.reply_text(f'Bajando volumen')
+            os.system("pulsemixer --change-volume -10")            
 
 
 async def proyector_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
